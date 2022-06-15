@@ -1,4 +1,4 @@
 # MLS solver for QPDIR
-def mls():
+def MLS():
    
    return 0

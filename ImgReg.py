@@ -5,8 +5,8 @@ import nibabel as nib
 import random
 import math
 
-from kNN import kNN
-from MLS import mls
+from kNN import distance, kNN
+from MLS import MLS
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_00_0000_t1.nii.gz')
@@ -25,14 +25,14 @@ window_x = 8
 window_y = 8
 window_z = 5
 
-stride = 1
-pad = 1
+stride  = 1
+padding = 1
 
 alpha = 1.0
 mu    = 8.0
-N_x   = round((fixed_data.shape[0]-2*pad) / window_x);
-N_y   = round((fixed_data.shape[1]-2*pad) / window_y);
-N_z   = round((fixed_data.shape[2]-2*pad) / window_z);
+N_x   = round((fixed_data.shape[0]-2*padding) / window_x);
+N_y   = round((fixed_data.shape[1]-2*padding) / window_y);
+N_z   = round((fixed_data.shape[2]-2*padding) / window_z);
 N = N_x * N_y * N_z
 
 # displacement field d
@@ -43,7 +43,7 @@ A = np.eye(N)
 z = np.zeros((3,N)) # init guess: 0.0
 
 # dart throwing
-n_throws = 100
+n_throws = 50
 
 # k-NN
 knn = 31
@@ -52,26 +52,38 @@ print("settings: alpha =", alpha, ", mu =", mu, ", window =", window_x, "x", win
 
 # block coordinate descent
 error = 0.0
-dist = np.zeros((1,1))
-reg  = np.zeros((1,1))
+dist  = np.zeros((2,1))
+reg   = np.zeros((2,1))
 for iters in range(n_throws):
-    dart_x = random.randint(1, N_x-1)
-    dart_y = random.randint(1, N_y-1)
-    dart_z = random.randint(1, N_z-1)
-    #print("dart(XYZ):", dart_x, dart_y, dart_z)   
+    dart_x = random.randint(0, N_x-2*padding)
+    dart_y = random.randint(0, N_y-2*padding)
+    dart_z = random.randint(0, N_z-2*padding)   
     loc = dart_z*N_y*N_x + dart_y*N_x + dart_x
     block_size = window_x*window_y*window_z
     
-    h = kNN(fixed_data, moving_data, d, window_x, window_y, window_z, dart_x, dart_y, dart_z, loc, knn, N, A, alpha, mu, dist, reg)
+    h = kNN(fixed_data, moving_data, d, window_x, window_y, window_z, dart_x, dart_y, dart_z, loc, knn, N, A, alpha, mu, dist, reg, stride, padding)
     
     error += float(dist[0])
-    
-    mls()
-    
-print("error:", error/n_throws)
+
+    MLS()
+
+    print("dart(XYZ):", dart_x, dart_y, dart_z)
+    print("matched error:", dist[0], "sampled error:", dist[1])
+    print("d_", loc, ":", d[0][loc], d[1][loc], d[2][loc])
+
+print("error(estimated):", error/n_throws)
+
+# apply displacement field to moving image
+error = 0.0
+for i in range(N_x):
+    for j in range(N_y):
+        for k in range(N_z):
+            loc = k*N_y*N_x + j*N_x + i
+            error += distance(fixed_data, moving_data, window_x, window_y, window_z, i, j, k, d[0][loc]+i*window_x, d[1][loc]+j*window_y, d[2][loc]+k*window_z)
+
+print("error(validated):", error/N)
 
 # write displacement field to file
 with open('weights', 'w') as f:
     for item in d:
         f.write("%s\n" % item)
-
