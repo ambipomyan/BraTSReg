@@ -25,11 +25,11 @@ def search(dist, d, dst, src, wx, wy, wz, dart_x, dart_y, dart_z, loc, N):
                 dist[1] = distance(dst, src, wx, wy, wz, dart_x, dart_y, dart_z, idx+dart_x*wx, idy+dart_y*wy, idz+dart_z*wz)
                 if dist[1] < dist[0]:
                     dist[0] = dist[1]
-                    d[0][loc] = idx
-                    d[1][loc] = idy
-                    d[2][loc] = idz
+                    d[0][loc] = -idx
+                    d[1][loc] = -idy
+                    d[2][loc] = -idz
 
-    return [idx, idy, idz]
+    return idx, idy, idz
 
 # block matching for QPDIR
 def kNN(dst, src, d, wx, wy, wz, dart_x, dart_y, dart_z, loc, N, knn, A, alpha, mu, dist, reg, stride, padding):
