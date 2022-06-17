@@ -6,74 +6,121 @@ import math
 from nibabel.testing import data_path
 import nibabel as nib
 
-from kNN import distance, kNN
-from MLS import MLS
-from utils import dart_throw, get_grid, sample
+from BlockCoordinateDecent import dart_throw, kNN, mls
+from QPDIR import compute_func_res, search_func_val, compute_iter_diff
+
+# ----- load data ----- #
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_00_0000_t1.nii.gz')
 following = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_t1.nii.gz')
 
 # load image
-fixed_img  = nib.load(orignial)
-moving_img = nib.load(following)
+fixed_img   = nib.load(orignial)
+moving_img  = nib.load(following)
 fixed_data  = fixed_img.get_fdata()
 moving_data = moving_img.get_fdata()
-pred_data = moving_img.get_fdata()
+pred_data   = moving_img.get_fdata()
 
 # check image shape
 H = fixed_data.shape[0]
 W = fixed_data.shape[1]
 C = fixed_data.shape[2]
-print("inputs(HWC):", H, W, C)
+print("inputs (HWC):", H, W, C)
 
-window_x = 8
-window_y = 8
-window_z = 5
+# ----- set parameters ----- #
 
-stride  = 1
-padding = 1
+# init block size
+rx = 3
+ry = 3
+rz = 1
+print("init blocks (HWC):", rx, ry, rz)
 
+# search window size (and penalty parameter mu)
+sw = 15
+#mu = sw**2 / 2
+print("search window radius:", sw)
+
+# regularization parameter
 alpha = 1.0
-mu    = 8.0
+print("alpha:", alpha)
 
-N_x, N_y, N_z, N = get_grid(H, W, C, window_x, window_y, window_z, stride, padding)
+# voxel dims
+xmm = 1
+ymm = 1
+zmm = 1
+print("voxel dim by mm (HWC):", xmm, ymm, zmm)
 
-# displacement field d
-d = np.zeros((3,N), dtype=int)
-# matrix A
-A = np.eye(N)
-# auxiliary variables z
-z = np.zeros((3,N)) # init guess: 0.0
+# k-NN: number of connected componenets and max size, needs to be tuned
+K    = 2
+maxL = 500000
+knn  = 50
 
-# dart throwing
-n_throws = 10
+# point cloud spacing for dart throw
+dpx = 1
+dpy = 1
+dpz = 1
 
-# k-NN
-knn = 31
+# ------ set memory ------ #
 
-print("settings: alpha =", alpha, ", mu =", mu, ", window =", window_x, "x", window_y, "x", window_z, ", grid = ", N_x, "x", N_y, "x", N_z, ", # of estimations = ", n_throws)
+# displacement field d and auxiliary variables z
+d    = np.zeros((3,H*W*C), dtype=int)
+Z    = np.zeros((3,maxL),  dtype=int)
+Zold = np.zeros((3,maxL),  dtype=int)
 
-# block coordinate descent
-error = 0.0
-dist  = np.zeros((2,1))
-reg   = np.zeros((2,1))
-for iters in range(n_throws):
-    dart_x, dart_y, dart_z, loc = dart_throw(N_x, N_y, N_z, stride, padding)
+# workspace for d and z
+d_ws = np.zeros((3,H*W*C), dtype=int)
+z_ws = np.zeros((3,maxL),  dtype=int)
+
+# matrices for mls
+A   = np.zeros(knn*maxL)
+KNN = np.zeros(knn*maxL, dtype=int)
+
+# solution counter for d
+dL = 0
+
+# ----- run algorithm ----- #
+for Kid in range(K):
+    print("----------------- Kid =", Kid, "-----------------")
+    # dart_throw
+    L = dart_throw()
+    # init guess of displacement field: 0
+    for i in range(L): 
+        Z[0][i] = 0
+        Z[1][i] = 0
+        Z[2][i] = 0
+        Zold[0][i] = Z[0][i]
+        Zold[1][i] = Z[1][i]
+        Zold[2][i] = Z[2][i]
+    # kNN
+    kNN(L)
+    # mls
+    mls()
     
-    h = kNN(fixed_data, moving_data, d, window_x, window_y, window_z, dart_x, dart_y, dart_z, loc, knn, N, A, alpha, mu, dist, reg, stride, padding)
+    maxIter = 10
+    SWin = sw
+    while SWin is not 0:
+        mu = SWin**2 / 2
+        for i in range(maxIter):
+            # update obj function
+            compute_func_res()
+            # update displacement field
+            objVal = search_func_val()
+            # compute diff between iters
+            diff = compute_iter_diff()
+
+            print("iter#:", i, "F(Z):", objVal, "iterDiff:", diff, "sw:", SWin)
+
+            if diff is 0: break
+        if SWin is 1: break
+        SWin = int(round(SWin/2))
+    # store solution to d
+    for i in range(L):
+        d[0][i+dL] = Z[0][i]
+        d[1][i+dL] = Z[1][i]
+        d[2][i+dL] = Z[2][i]
     
-    error += float(dist[0])
-    
-    print("dart(XYZ):", dart_x, dart_y, dart_z)
-    print("matched error:", dist[0], "sampled error:", dist[1])
-    print("d_", loc, ":", d[0][loc], d[1][loc], d[2][loc])
-
-print("error(estimated):", error/n_throws)
-
-mse = sample(fixed_data, pred_data, moving_data, d, window_x, window_y, window_z, N_x, N_y, N_z)
-
-print("error(validated):", mse/N)
+    dL += L
 
 # write displacement field to file
 with open('weights', 'w') as f:

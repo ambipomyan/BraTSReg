@@ -2,15 +2,30 @@ import numpy as np
 import math
 import random
 
-from kNN import distance
+def distance(dst, src, wx, wy, wz, dart_x, dart_y, dart_z, s_x, s_y, s_z):
+    dist = 0
+    for i in range(wx):
+        for j in range(wy):
+            for k in range(wz):
+                dist += (src[s_x+i][s_y+j][s_z+k] - dst[dart_x*wx+i][dart_y*wy+j][dart_z*wz+k])**2
+                
+    
+    dist = math.sqrt(dist)
+    
+    return dist
 
-def dart_throw(N_x, N_y, N_z, stride, padding):
-    dart_x = random.randint(0, N_x-2*padding)
-    dart_y = random.randint(0, N_y-2*padding)
-    dart_z = random.randint(0, N_z-2*padding)   
-    loc = dart_z*N_y*N_x + dart_y*N_x + dart_x
+def search_by_block(dist, d, dst, src, wx, wy, wz, dart_x, dart_y, dart_z, loc, N):
+    for idx in range(-wx, wx):
+        for idy in range(-wy, wy):
+            for idz in range(-wz, wz):
+                dist[1] = distance(dst, src, wx, wy, wz, dart_x, dart_y, dart_z, idx+dart_x*wx, idy+dart_y*wy, idz+dart_z*wz)
+                if dist[1] < dist[0]:
+                    dist[0] = dist[1]
+                    d[0][loc] = -idx
+                    d[1][loc] = -idy
+                    d[2][loc] = -idz
 
-    return dart_x, dart_y, dart_z, loc
+    return idx, idy, idz
 
 def get_grid(H, W, C, wx, wy, wz, stride, padding):
     N_x   = round((H-2*padding) / wx);
