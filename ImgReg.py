@@ -20,7 +20,6 @@ fixed_img   = nib.load(orignial)
 moving_img  = nib.load(following)
 fixed_data  = fixed_img.get_fdata()
 moving_data = moving_img.get_fdata()
-pred_data   = moving_img.get_fdata()
 
 # check image shape
 H = fixed_data.shape[0]
@@ -56,12 +55,15 @@ K    = 2
 maxL = 500000
 knn  = 50
 
-# point cloud spacing for dart throw
-dpx = 1
-dpy = 1
-dpz = 1
+# point cloud spacing for dart throw, needs to be tuned
+dpx = 3
+dpy = 3
+dpz = 3
 
 # ------ set memory ------ #
+
+# mask image
+mask = np.zeros(H*W*C, dtype=int)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3,H*W*C), dtype=int)
@@ -82,8 +84,10 @@ dL = 0
 # ----- run algorithm ----- #
 for Kid in range(K):
     print("----------------- Kid =", Kid, "-----------------")
+
     # dart_throw
-    L = dart_throw()
+    L = dart_throw(mask, z_ws, dpx, dpy, dpz, H, W, C, Kid)
+
     # init guess of displacement field: 0
     for i in range(L): 
         Z[0][i] = 0
