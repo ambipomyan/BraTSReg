@@ -19,12 +19,12 @@ nibabel
 ```
 inputs (HWC): 240 240 155
 init blocks (HWC): 3 3 1
-search window radius: 15 
+search window radius: 15
 alpha: 1.0
 voxel dim by mm (HWC): 1 1 1
 ----------------- Kid = 0 -----------------
 dart_throw...
-# of list points for mls: 100
+# of list points for mls: 23382
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 15
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 8
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 4
@@ -32,7 +32,7 @@ iter#: 0 F(Z): 0 iterDiff: 0 sw: 2
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 1
 ----------------- Kid = 1 -----------------
 dart_throw...
-# of list points for mls: 100
+# of list points for mls: 36
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 15
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 8
 iter#: 0 F(Z): 0 iterDiff: 0 sw: 4
