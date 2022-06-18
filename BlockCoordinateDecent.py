@@ -33,7 +33,7 @@ def dart_throw(mask, S, dpx, dpy, dpz, H, W, C, Kid):
                S[2][count] = S_tmp[2][idx]
                count += 1
         M = updateList(mask_tmp, S_tmp, M, H, W, C)
-        print("M:", M, "count:", count)
+        #print("M:", M, "count:", count)
 
     return count
 

@@ -56,14 +56,14 @@ maxL = 500000
 knn  = 50
 
 # point cloud spacing for dart throw, needs to be tuned
-dpx = 3
-dpy = 3
-dpz = 3
+dpx = 5
+dpy = 5
+dpz = 5
 
 # ------ set memory ------ #
 
 # mask image
-mask = np.zeros(H*W*C, dtype=int)
+mask = moving_data.reshape(H*W*C)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3,H*W*C), dtype=int)
@@ -103,7 +103,7 @@ for Kid in range(K):
     
     maxIter = 10
     SWin = sw
-    while SWin is not 0:
+    while SWin != 0:
         mu = SWin**2 / 2
         for i in range(maxIter):
             # update obj function
@@ -115,8 +115,8 @@ for Kid in range(K):
 
             print("iter#:", i, "F(Z):", objVal, "iterDiff:", diff, "sw:", SWin)
 
-            if diff is 0: break
-        if SWin is 1: break
+            if diff == 0: break
+        if SWin == 1: break
         SWin = int(round(SWin/2))
     # store solution to d
     for i in range(L):
