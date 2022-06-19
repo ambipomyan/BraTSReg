@@ -2,8 +2,6 @@ import numpy as np
 import math
 import random
 
-from utils import distance, sample, search_by_block
-
 def compute_func_res():
     #print("compute objective function...")
     res = 0

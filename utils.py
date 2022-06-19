@@ -2,56 +2,74 @@ import numpy as np
 import math
 import random
 
-def distance(dst, src, wx, wy, wz, dart_x, dart_y, dart_z, s_x, s_y, s_z):
-    dist = 0
-    for i in range(wx):
-        for j in range(wy):
-            for k in range(wz):
-                dist += (src[s_x+i][s_y+j][s_z+k] - dst[dart_x*wx+i][dart_y*wy+j][dart_z*wz+k])**2
-                
-    
-    dist = math.sqrt(dist)
-    
-    return dist
+def randomPickInt(N):
+    res = random.randint(0, N-1)
 
-def search_by_block(dist, d, dst, src, wx, wy, wz, dart_x, dart_y, dart_z, loc, N):
-    for idx in range(-wx, wx):
-        for idy in range(-wy, wy):
-            for idz in range(-wz, wz):
-                dist[1] = distance(dst, src, wx, wy, wz, dart_x, dart_y, dart_z, idx+dart_x*wx, idy+dart_y*wy, idz+dart_z*wz)
-                if dist[1] < dist[0]:
-                    dist[0] = dist[1]
-                    d[0][loc] = -idx
-                    d[1][loc] = -idy
-                    d[2][loc] = -idz
+    return res
 
-    return idx, idy, idz
+def initUpperTriangleMatrix(arr, dim):
+    M = np.zeros((dim, dim))
+    M[0][0] = arr[0]
+    M[0][1] = arr[1]
+    M[0][2] = arr[2]
+    M[0][3] = arr[3]
+    M[1][1] = arr[4]
+    M[1][2] = arr[5]
+    M[1][3] = arr[6]
+    M[2][2] = arr[7]
+    M[2][3] = arr[8]
+    M[3][3] = arr[9]
+    M[1][0] = M[0][1]
+    M[2][0] = M[0][2]
+    M[2][1] = M[1][2]
+    M[3][0] = M[0][3]
+    M[3][1] = M[1][3]
+    M[3][2] = M[2][3]
 
-def get_grid(H, W, C, wx, wy, wz, stride, padding):
-    N_x   = round((H-2*padding) / wx);
-    N_y   = round((W-2*padding) / wy);
-    N_z   = round((C-2*padding) / wz);
-    N = N_x * N_y * N_z
+    return M
 
-    return N_x, N_y, N_z, N
+def initIdMatrix(dim):
+    Diag = np.eye(dim)
 
-# Sampler for warpping moving image to predicted image
-def sample_by_block(output_data, input_data, d, loc, i, j ,k, wx, wy, wz):
-    for p in range(wx):
-        for q in range(wy):
-            for r in range(wz):
-                x = i*wx + p + d[0][loc]
-                y = j*wy + q + d[1][loc]
-                z = k*wz + r + d[2][loc]
-                output_data[x][y][z] = input_data[i*wx+p][j*wy+q][k*wz+r]
+    return Diag
 
-def sample(fixed_data, pred_data, moving_data, d, window_x, window_y, window_z, N_x, N_y, N_z):
-    error = 0.0
-    for i in range(N_x):
-        for j in range(N_y):
-            for k in range(N_z):
-                loc = k*N_y*N_x + j*N_x + i
-                sample_by_block(pred_data, moving_data, d, loc, i, j ,k, window_x, window_y, window_z)
-                error += distance(fixed_data, pred_data, window_x, window_y, window_z, i, j, k, i*window_x, j*window_y, k*window_z)
+def CholeskyFactorization(b, R, dim):
+    R[0][0] = math.sqrt(R[0][0])
 
-    return error
+    R[1][0] = R[1][0]/R[0][0]
+    R[0][1] = R[1][0]
+    R[1][1] = math.sqrt(R[1][1] - R[1][0]**2)
+
+    R[2][0] = R[2][0]/R[0][0]
+    R[0][2] = R[2][0]
+    R[2][1] = (R[2][1] - R[2][0]*R[1][0])/R[1][1]
+    R[1][2] = R[2][1]
+    R[2][2] = math.sqrt(R[2][2] - R[2][1]**2 - R[2][0]**2)
+
+    R[3][0] = R[3][0]/R[0][0]
+    R[0][3] = R[3][0]
+    R[3][1] = (R[3][1] - R[3][0]*R[1][0])/R[1][1]
+    R[1][3] = R[3][1]
+    R[3][2] = (R[3][2] - R[3][0]*R[2][0] - R[3][1]*R[2][1])/R[2][2]
+    R[2][3] = R[3][2]
+    R[3][3] = math.sqrt(R[3][3] - R[3][2]**2 - R[3][1]**2 - R[3][0]**2)
+
+    # forward
+    v1 = np.zeros(dim)
+    for i in range(dim):
+        for j in range(i):
+            for k in range(dim):
+                v1[k] += R[i][j]*b[j][k]
+        for s in range(dim):
+            b[i][s] = (b[i][s] - v1[s])/R[i][i]
+
+    # backward
+    v2 = np.zeros(dim)
+    for i in range(dim-1, -1, -1):
+        for j in range(i+1, dim):
+            for k in range(dim):
+                v2[k] += R[i][j]*b[j][k]
+        for s in range(dim):
+            b[i][s] = (b[i][s] - v2[s])/R[i][i]
+
+    return 0

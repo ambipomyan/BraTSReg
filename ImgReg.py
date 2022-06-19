@@ -55,9 +55,9 @@ maxL = 500000
 knn  = 50
 
 # point cloud spacing for dart throw, needs to be tuned
-dpx = 5
-dpy = 5
-dpz = 5
+dpx = 15 # larger numbers for quicker tests
+dpy = 15
+dpz = 15
 
 # ------ set memory ------ #
 
@@ -97,9 +97,9 @@ for Kid in range(K):
         Zold[2][i] = Z[2][i]
 
     # kNN
-    kNN(z_ws, L, z_ws, L, KNN, xmm, ymm, zmm, knn)
+    kNN(z_ws, L, z_ws, L, KNN, knn, xmm, ymm, zmm)
     # mls
-    mls()
+    mls(z_ws, L, KNN, A, knn, xmm, ymm,zmm)
     
     maxIter = 10
     SWin = sw
