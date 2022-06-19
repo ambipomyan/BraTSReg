@@ -48,7 +48,6 @@ print("alpha:", alpha)
 xmm = 1
 ymm = 1
 zmm = 1
-print("voxel dim by mm (HWC):", xmm, ymm, zmm)
 
 # k-NN: number of connected componenets and max size, needs to be tuned
 K    = 2
@@ -63,14 +62,14 @@ dpz = 5
 # ------ set memory ------ #
 
 # mask image
-mask = moving_data.reshape(H*W*C)
+mask = moving_img.get_fdata().reshape(H*W*C)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3,H*W*C), dtype=int)
 Z    = np.zeros((3,maxL),  dtype=int)
 Zold = np.zeros((3,maxL),  dtype=int)
 
-# workspace for d and z
+# workspaces for d and z
 d_ws = np.zeros((3,H*W*C), dtype=int)
 z_ws = np.zeros((3,maxL),  dtype=int)
 
@@ -89,15 +88,16 @@ for Kid in range(K):
     L = dart_throw(mask, z_ws, dpx, dpy, dpz, H, W, C, Kid)
 
     # init guess of displacement field: 0
-    for i in range(L): 
+    for i in range(L):
         Z[0][i] = 0
         Z[1][i] = 0
         Z[2][i] = 0
         Zold[0][i] = Z[0][i]
         Zold[1][i] = Z[1][i]
         Zold[2][i] = Z[2][i]
+
     # kNN
-    kNN(L)
+    kNN(z_ws, L, z_ws, L, KNN, xmm, ymm, zmm, knn)
     # mls
     mls()
     
