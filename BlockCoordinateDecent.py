@@ -144,7 +144,7 @@ def computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm):
 
 def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
     for bid in range(BLOCKS):
-        for tid in range(THREADS):
+        for tid in range(BUCKETS):
             buckets[tid] = 0
             buckets[tid + 512] = 0
 
@@ -160,7 +160,7 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
             p_in  = 0
             p_out = 1
             for i in range(9): # 9 = log_2(512)
-                offset = pow(2, i)
+                offset = 2**i
                 p_out = 1 - p_out # swap p_in and p_out
                 p_in  = 1 - p_out
 
@@ -189,7 +189,7 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
 
 def formatDist(vals, localVals, KNN, L, knn):
     for bid in range(BLOCKS):
-        for tid in range(THREADS):
+        for tid in range(knn):
             k = KNN[bid*knn + tid]
             localVals[bid*knn + tid] = vals[bid*L + k]
 
