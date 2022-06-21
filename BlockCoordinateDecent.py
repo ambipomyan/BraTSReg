@@ -155,7 +155,7 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
                 
                 if d >= BUCKETS: d = BUCKETS - 1
                 buckets[d + 1] += 1
-                print("1st pass - d:", d, "buckets[d+1]:", buckets[d + 1], "i:", i)
+                #print("1st pass - d:", d, "d+1:", d+1, "buckets[d+1]:", buckets[d + 1], "i:", i)
 
             p_in  = 0
             p_out = 1
@@ -165,7 +165,7 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
                 p_in  = 1 - p_out
 
                 if tid >= offset:
-                    buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset]
+                    buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset] # overflow??
                 else:
                     buckets[512*p_out + tid] = buckets[512*p_in + tid]
 
@@ -179,7 +179,7 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
                 if d >= BUCKETS: d = BUCKETS - 1
                 buckets[d] += 1
                 count = buckets[d]
-                print("2nd pass - d:", d, "buckets[d]:", count, "i:", i)
+                #print("2nd pass - d:", d, "buckets[d]:", count, "i:", i)
 
                 if count < knn: buckets[count + 512] = i
 
@@ -213,12 +213,16 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
                                 ((S[1][idx] - S[1][count])*ymm)**2 + \
                                 ((S[2][idx] - S[2][count])*zmm)**2    )
 
+        '''
         for k in range(knn):
             if count == 0: # caused by randomPickInt, only ONE KNN element is updated
                 nrm[k] = 0
             else:
                 nrm[k] = math.exp(-(3*3/(2*nrm[knn - 1]**2))*nrm[k])
                 #print(nrm[k])
+        '''
+        for k in range(knn):
+            nrm[k] = math.exp(-(3*3/(2*nrm[knn - 1]**2))*nrm[k])
 
         # A'A
         for k in range(knn):
@@ -240,7 +244,7 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
             ATA[9] += ws[3]**2
         
         #print(ATA)
-        xTAI = invert(ATA, 4)
+        CholeskyFactorization(xTAI, ATA, 4)
 
         # x'A'AIA'w
         for k in range(knn):
@@ -256,15 +260,3 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
                                         xTAI[3]*ws[3]    )
 
     return 0
-
-def invert(ATA, dim):
-    res = np.zeros(dim)
-    R = initUpperTriangleMatrix(ATA, dim)
-    b = initIdMatrix(dim)
-
-    CholeskyFactorization(b, R, dim)
-
-    for i in range(dim):
-        res[i] = b[dim - 1][i]
-
-    return res

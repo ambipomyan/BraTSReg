@@ -9,6 +9,11 @@ import nibabel as nib
 from BlockCoordinateDecent import dart_throw, kNN, mls
 from QPDIR import compute_func_res, search_func_val, compute_iter_diff
 
+# GPU settings for tests
+BLOCKS  = 512
+THREADS = 256
+BUCKETS = 512
+
 # ----- load data ----- #
 
 # find data path for original scan and fllowing scan
@@ -57,7 +62,7 @@ knn  = 50
 # point cloud spacing for dart throw, needs to be tuned
 dpx = 15 # larger numbers for quicker tests
 dpy = 15
-dpz = 15
+dpz = 1
 
 # ------ set memory ------ #
 
@@ -98,6 +103,7 @@ for Kid in range(K):
 
     # kNN
     kNN(z_ws, L, z_ws, L, KNN, knn, xmm, ymm, zmm)
+
     # mls
     mls(z_ws, L, KNN, A, knn, xmm, ymm,zmm)
     

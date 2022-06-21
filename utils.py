@@ -33,7 +33,10 @@ def initIdMatrix(dim):
 
     return Diag
 
-def CholeskyFactorization(b, R, dim):
+def CholeskyFactorization(xTAI, ATA, dim):
+    R = initUpperTriangleMatrix(ATA, dim)
+    b = initIdMatrix(dim)    
+
     R[0][0] = math.sqrt(R[0][0])
 
     R[1][0] = R[1][0]/R[0][0]
@@ -55,21 +58,30 @@ def CholeskyFactorization(b, R, dim):
     R[3][3] = math.sqrt(R[3][3] - R[3][2]**2 - R[3][1]**2 - R[3][0]**2)
 
     # forward
-    v1 = np.zeros(dim)
     for i in range(dim):
+        v = np.zeros(dim)
+
         for j in range(i):
             for k in range(dim):
-                v1[k] += R[i][j]*b[j][k]
+                v[k] += R[i][j]*b[j][k]
+
         for s in range(dim):
-            b[i][s] = (b[i][s] - v1[s])/R[i][i]
+            b[i][s] = (b[i][s] - v[s])/R[i][i]
 
     # backward
-    v2 = np.zeros(dim)
     for i in range(dim-1, -1, -1):
+        v = np.zeros(dim)
+
         for j in range(i+1, dim):
             for k in range(dim):
-                v2[k] += R[i][j]*b[j][k]
+                v[k] += R[i][j]*b[j][k]
+
         for s in range(dim):
-            b[i][s] = (b[i][s] - v2[s])/R[i][i]
+            b[i][s] = (b[i][s] - v[s])/R[i][i]
+
+    xTAI[0] = b[3][0]
+    xTAI[1] = b[3][1]
+    xTAI[2] = b[3][2]
+    xTAI[3] = b[3][3]
 
     return 0
