@@ -6,7 +6,7 @@ BLOCKS  = 512
 THREADS = 256
 BUCKETS = 512
 
-from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, CholeskyFactorization
+from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, CholeskyFactorization, compute2Norm
 
 
 #----- dart throw -----#
@@ -108,12 +108,11 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
     vals      = np.zeros(L*BLOCKS)
     localKNN  = np.zeros(knn*BLOCKS, dtype=int)
     localVals = np.zeros(knn*BLOCKS)
-    buckets   = np.zeros(1024, dtype=int)
 
     # compute knn
     for idx in range(0, N, BLOCKS):
         computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm)
-        sortBucket(vals, L, localKNN, knn, xmm, ymm, zmm, buckets)
+        countBuckets(vals, L, localKNN, knn, xmm, ymm, zmm)
         formatDist(vals, localVals, localKNN, L, knn) # not necessarily needed
 
         count = 0
@@ -142,36 +141,39 @@ def computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm):
 
     return 0
 
-def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
+def countBuckets(vals, L, KNN, knn, xmm, ymm, zmm):
     for bid in range(BLOCKS):
-        for tid in range(BUCKETS):
-            buckets[tid] = 0
-            buckets[tid + 512] = 0
+        buckets = np.zeros(1024, dtype=int) # may use shared memory
 
-            # first pass
+        # first pass
+        for tid in range(BUCKETS):    
             for i in range(tid, L, BUCKETS):
                 val = vals[bid*L + i]
                 d = int(round(val / xmm)) # suppose that xmm == ymm
-                
+
                 if d >= BUCKETS: d = BUCKETS - 1
                 buckets[d + 1] += 1
                 #print("1st pass - d:", d, "d+1:", d+1, "buckets[d+1]:", buckets[d + 1], "i:", i)
 
+        for tid in range(BUCKETS):
             p_in  = 0
             p_out = 1
             for i in range(9): # 9 = log_2(512)
                 offset = 2**i
+                #print("offset:", offset)
                 p_out = 1 - p_out # swap p_in and p_out
                 p_in  = 1 - p_out
 
                 if tid >= offset:
-                    buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset] # overflow??
+                    buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset]
                 else:
                     buckets[512*p_out + tid] = buckets[512*p_in + tid]
 
             buckets[tid] = buckets[512*p_out + tid]
+            #print("buckets[tid]:", buckets[tid], "tid:", tid)
 
-            # second pass
+        # second pass
+        for tid in range(BUCKETS):
             for i in range(tid, L, BUCKETS):
                 val = vals[bid*L + i]
                 d = int(round(val / xmm)) # suppose that xmm == ymm
@@ -183,7 +185,11 @@ def sortBucket(vals, L, KNN, knn, xmm, ymm, zmm, buckets):
 
                 if count < knn: buckets[count + 512] = i
 
-            if tid < knn: KNN[bid*knn + tid] = buckets[tid + 512]
+        # update KNN
+        for tid in range(BUCKETS):
+            if tid < knn: 
+                KNN[bid*knn + tid] = buckets[tid + 512]
+                #print("KNN[bid*knn + tid]:", KNN[bid*knn + tid], "bid*knn + tid:", bid*knn + tid)
 
     return 0
 
@@ -209,20 +215,15 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
         # w
         for k in range(knn):
             idx = KNN[count*knn + k]
-            nrm[k] = math.sqrt( ((S[0][idx] - S[0][count])*xmm)**2 + \
-                                ((S[1][idx] - S[1][count])*ymm)**2 + \
-                                ((S[2][idx] - S[2][count])*zmm)**2    )
+            nrm[k] = compute2Norm(S, idx, count, xmm, ymm, zmm)
 
-        '''
+        if count == 0: print(nrm)
+
+        h  = np.max(nrm) # infinity-norm
+        if count == 0: print("h:", h)
+        h2 = h**2
         for k in range(knn):
-            if count == 0: # caused by randomPickInt, only ONE KNN element is updated
-                nrm[k] = 0
-            else:
-                nrm[k] = math.exp(-(3*3/(2*nrm[knn - 1]**2))*nrm[k])
-                #print(nrm[k])
-        '''
-        for k in range(knn):
-            nrm[k] = math.exp(-(3*3/(2*nrm[knn - 1]**2))*nrm[k])
+            nrm[k] = math.exp(-nrm[k]*1/h2)
 
         # A'A
         for k in range(knn):
@@ -242,7 +243,7 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
             ATA[7] += ws[2]**2
             ATA[8] += ws[2]*ws[3]
             ATA[9] += ws[3]**2
-        
+
         #print(ATA)
         CholeskyFactorization(xTAI, ATA, 4)
 

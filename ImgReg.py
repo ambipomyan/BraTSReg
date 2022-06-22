@@ -62,7 +62,7 @@ knn  = 50
 # point cloud spacing for dart throw, needs to be tuned
 dpx = 15 # larger numbers for quicker tests
 dpy = 15
-dpz = 1
+dpz = 3
 
 # ------ set memory ------ #
 
@@ -106,7 +106,7 @@ for Kid in range(K):
 
     # mls
     mls(z_ws, L, KNN, A, knn, xmm, ymm,zmm)
-    
+
     maxIter = 10
     SWin = sw
     while SWin != 0:

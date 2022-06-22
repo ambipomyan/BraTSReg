@@ -85,3 +85,10 @@ def CholeskyFactorization(xTAI, ATA, dim):
     xTAI[3] = b[3][3]
 
     return 0
+
+def compute2Norm(S, i, j, xmm, ymm, zmm):
+    res = math.sqrt( ((S[0][i] - S[0][j])*xmm)**2 + \
+                     ((S[1][i] - S[1][j])*ymm)**2 + \
+                     ((S[2][i] - S[2][j])*zmm)**2    )
+    
+    return res
