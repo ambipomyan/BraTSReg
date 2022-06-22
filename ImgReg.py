@@ -30,7 +30,7 @@ moving_data = moving_img.get_fdata()
 H = fixed_data.shape[0]
 W = fixed_data.shape[1]
 C = fixed_data.shape[2]
-print("inputs (HWC):", H, W, C)
+print("input dims(HWC):", H, W, C)
 
 # ----- set parameters ----- #
 
@@ -38,12 +38,12 @@ print("inputs (HWC):", H, W, C)
 rx = 3
 ry = 3
 rz = 1
-print("init blocks (HWC):", rx, ry, rz)
+print("block dims(HWC):", rx, ry, rz)
 
 # search window size (and penalty parameter mu)
-sw = 15
+sw = 15 # 15x15x15 window
 #mu = sw**2 / 2
-print("search window radius:", sw)
+print("init search window radius:", sw)
 
 # regularization parameter
 alpha = 1.0
@@ -70,22 +70,40 @@ dpz = 3
 mask = moving_img.get_fdata().reshape(H*W*C)
 
 # displacement field d and auxiliary variables z
-d    = np.zeros((3,H*W*C), dtype=int)
-Z    = np.zeros((3,maxL),  dtype=int)
-Zold = np.zeros((3,maxL),  dtype=int)
+d    = np.zeros((3, H*W*C), dtype=int)
+Z    = np.zeros((3, maxL),  dtype=int)
+Zold = np.zeros((3, maxL),  dtype=int)
 
 # workspaces for d and z
-d_ws = np.zeros((3,H*W*C), dtype=int)
-z_ws = np.zeros((3,maxL),  dtype=int)
+d_ws = np.zeros((3, H*W*C), dtype=int)
+z_ws = np.zeros((3, maxL),  dtype=int)
 
 # matrices for mls
-A   = np.zeros(knn*maxL)
-KNN = np.zeros(knn*maxL, dtype=int)
+A   = np.zeros(knn * maxL)
+KNN = np.zeros(knn * maxL, dtype=int)
+
+# CG vectors
+b  = np.zeros(maxL)
+x  = np.zeros(maxL)
+r  = np.zeros(maxL)
+p  = np.zeros(maxL)
+Ap = np.zeros(maxL)
+
+# QP variables
+Y = np.zeros((3, maxL))
+
+# obj function res
+F = np.zeros((2, BLOCKS*THREADS))
+I = np.zeros(BLOCKS*THREADS, dtype=int)
+
+# localSUM
+localVals = np.zeros((2, BLOCKS))
 
 # solution counter for d
-dL = 0
+dL = 0 # int
 
 # ----- run algorithm ----- #
+
 for Kid in range(K):
     print("----------------- Kid =", Kid, "-----------------")
 
@@ -113,26 +131,46 @@ for Kid in range(K):
         mu = SWin**2 / 2
         for i in range(maxIter):
             # update obj function
-            computeFuncRes()
+            computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
             # update displacement field
-            objVal = updateDisplacementField()
+            objVal, ccVal = updateDisplacementField(F, localVals, z_ws, Z, Y, L, mu, SWin, SWin, SWin, rx, ry, rz)
             # compute diff between iters
-            diff = computeIterDiff()
+            nrmZ, nrmSQ = computeIterDiff(Z, Zold, Y, L)
 
-            print("iter#:", i, "F(Z):", objVal, "iterDiff:", diff, "sw:", SWin)
+            print("iter#:", i, "F(Z):", objVal, \
+                  "f(z):", ccVal, "||AX-Z||:", nrmZ, "||Xk+1-Xk||", nrmSQ, \
+                  "sw:", SWin)
 
-            if diff == 0: break
+            if nrmZ == 0: break
+
         if SWin == 1: break
         SWin = int(round(SWin/2))
+
     # store solution to d
     for i in range(L):
         d[0][i+dL] = Z[0][i]
         d[1][i+dL] = Z[1][i]
         d[2][i+dL] = Z[2][i]
-    
+
+        d_ws[0][i+dL] = z_ws[0][i]
+        d_ws[1][i+dL] = z_ws[1][i]
+        d_ws[2][i+dL] = z_ws[2][i]
+
     dL += L
 
-# write displacement field to file
+
+# ----- write displacement field to file ----- #
+
+sol = np.zeros(6*dL)
+for i in range(dL):
+    sol[i       ] = d_ws[0][i]
+    sol[i + 1*dL] = d_ws[1][i]
+    sol[i + 2*dL] = d_ws[2][i]
+    sol[i + 3*dL] =    d[0][i]
+    sol[i + 4*dL] =    d[1][i]
+    sol[i + 5*dL] =    d[2][i]
+
 with open('weights', 'w') as f:
-    for item in d:
+    f.write("%s\n" % dL)
+    for item in sol:
         f.write("%s\n" % item)
