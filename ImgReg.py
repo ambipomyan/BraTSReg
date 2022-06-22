@@ -3,13 +3,13 @@ import numpy as np
 import random
 import math
 
-from nibabel.testing import data_path
 import nibabel as nib
+from nibabel.testing import data_path
 
-from BlockCoordinateDecent import dart_throw, kNN, mls
-from QPDIR import compute_func_res, search_func_val, compute_iter_diff
+from BlockCoordinateDecent import throwDarts, kNN, mls
+from QPDIR import computeFuncRes, updateDisplacementField, computeIterDiff
 
-# GPU settings for tests
+# block matching settings for tests
 BLOCKS  = 512
 THREADS = 256
 BUCKETS = 512
@@ -89,8 +89,8 @@ dL = 0
 for Kid in range(K):
     print("----------------- Kid =", Kid, "-----------------")
 
-    # dart_throw
-    L = dart_throw(mask, z_ws, dpx, dpy, dpz, H, W, C, Kid)
+    # throwDarts
+    L = throwDarts(mask, z_ws, dpx, dpy, dpz, H, W, C, Kid)
 
     # init guess of displacement field: 0
     for i in range(L):
@@ -113,11 +113,11 @@ for Kid in range(K):
         mu = SWin**2 / 2
         for i in range(maxIter):
             # update obj function
-            compute_func_res()
+            computeFuncRes()
             # update displacement field
-            objVal = search_func_val()
+            objVal = updateDisplacementField()
             # compute diff between iters
-            diff = compute_iter_diff()
+            diff = computeIterDiff()
 
             print("iter#:", i, "F(Z):", objVal, "iterDiff:", diff, "sw:", SWin)
 

@@ -11,7 +11,7 @@ from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, Cholesky
 
 #----- dart throw -----#
 
-def dart_throw(mask, S, dpx, dpy, dpz, H, W, C, Kid):
+def throwDarts(mask, S, dpx, dpy, dpz, H, W, C, Kid):
     # get tmp mask and voxel list sizes
     M = H*W*C
     S_tmp = np.zeros((3,M), dtype=int)
@@ -23,7 +23,7 @@ def dart_throw(mask, S, dpx, dpy, dpz, H, W, C, Kid):
         idx = H*W*S_tmp[2][i] + S_tmp[0][i]*W + S_tmp[1][i]
         mask_tmp[idx] = 1
 
-    print("dart_throw...")
+    print("throwing darts...")
     count = 0
     M = N
     numDarts = 10000
@@ -216,12 +216,12 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
         for k in range(knn):
             idx = KNN[count*knn + k]
             nrm[k] = compute2Norm(S, idx, count, xmm, ymm, zmm)
-
-        if count == 0: print(nrm)
+        #if count == 0: print(nrm)
 
         h  = np.max(nrm) # infinity-norm
-        if count == 0: print("h:", h)
         h2 = h**2
+        #if count == 0: print("h:", h)
+
         for k in range(knn):
             nrm[k] = math.exp(-nrm[k]*1/h2)
 
