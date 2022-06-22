@@ -133,7 +133,7 @@ for Kid in range(K):
             # update obj function
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
             # update displacement field
-            objVal, ccVal = updateDisplacementField(F, localVals, z_ws, Z, Y, L, mu, SWin, SWin, SWin, rx, ry, rz)
+            objVal, ccVal = updateDisplacementField(F, localVals, z_ws, Z, Y, L, alpha, mu, SWin, SWin, SWin, rx, ry, rz)
             # compute diff between iters
             nrmZ, nrmSQ = computeIterDiff(Z, Zold, Y, L)
 
