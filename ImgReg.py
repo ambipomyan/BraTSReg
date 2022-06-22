@@ -1,7 +1,7 @@
 import os
 import numpy as np
-import random
 import math
+import random
 
 import nibabel as nib
 from nibabel.testing import data_path
@@ -132,13 +132,15 @@ for Kid in range(K):
         for i in range(maxIter):
             # update obj function
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
+
             # update displacement field
-            objVal, ccVal = updateDisplacementField(F, localVals, z_ws, Z, Y, L, alpha, mu, SWin, SWin, SWin, rx, ry, rz)
+            objVal, ccVal = updateDisplacementField(F, I, z_ws, Z, Y, L, localVals, mu, SWin, SWin, SWin, rx, ry, rz)
+
             # compute diff between iters
-            nrmZ, nrmSQ = computeIterDiff(Z, Zold, Y, L)
+            nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
 
             print("iter#:", i, "F(Z):", objVal, \
-                  "f(z):", ccVal, "||AX-Z||:", nrmZ, "||Xk+1-Xk||", nrmSQ, \
+                  "f(z):", ccVal, "||AX-Z||:", nrmZ, "||Xk+1-Xk||", nrmABS, \
                   "sw:", SWin)
 
             if nrmZ == 0: break

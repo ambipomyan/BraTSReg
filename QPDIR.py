@@ -2,6 +2,12 @@ import numpy as np
 import math
 import random
 
+# block matching settings for tests
+BLOCKS  = 512
+THREADS = 256
+BUCKETS = 512
+
+
 # ----- computeFunctinonRes ----- #
 
 def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
@@ -17,21 +23,48 @@ def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
 
     return 0
 
+
 # ----- updateDisplacementField ----- #
 
-def updateDisplacementField(F, localVals, z_ws, Z, Y, L, alpha, mu, sx, sy, sz, rx, ry, rz):
+def updateDisplacementField(F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz):
     #print("update displacement field...")
     obj = 0
     cc  = 0
 
+    count = 0
+    while count < L:
+        # search for block matching
+        searchMin(count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+        # sort for minimizers
+        sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
+
+        for i in range(BLOCKS):
+            obj += localVals[0][i]
+            cc  += localVals[1][i]
+
+        count += BLOCKS
+
+    for i in range(3):
+        for j in range(L):
+            Z[i][j] += round(Y[i][j])
+
     return obj, cc
+
+def searchMin(count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
+
+    return 0
+
+def sortMin(count, F, I, Z, L, localVals, sx, sy, sz):
+
+    return 0
+
 
 # ----- computeIterDiff ----- #
 
 def computeIterDiff(Z, Zold, Y, L):
     #print("compute difference between itrerations...")
     nrmABS = 0
-    nrmZ  = 0
+    nrmZ   = 0
 
     for i in range(3):
         for j in range(L):

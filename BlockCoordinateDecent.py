@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-# GPU settings for tests
+# block matching settings for tests
 BLOCKS  = 512
 THREADS = 256
 BUCKETS = 512
