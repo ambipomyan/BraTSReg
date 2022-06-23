@@ -126,10 +126,9 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
 
 def computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm):
     for bid in range(BLOCKS):
-        for tid in range(THREADS):
-            pid = bid + idx
-
-            if pid < N:
+        pid = bid + idx
+        if pid < N:
+            for tid in range(THREADS):
                 for i in range(tid, L, THREADS):
                     di = xmm*(src[0][i] - S[0][pid])
                     dj = ymm*(src[1][i] - S[1][pid])
@@ -233,16 +232,16 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
             ws[2] = nrm[k]*(S[2][idx] - S[2][count]) # z
             ws[3] = nrm[k]                           # w
 
-            ATA[0] += ws[0]**2
+            ATA[0] += ws[0]*ws[0]
             ATA[1] += ws[0]*ws[1]
             ATA[2] += ws[0]*ws[2]
             ATA[3] += ws[0]*ws[3]
-            ATA[4] += ws[1]**2
+            ATA[4] += ws[1]*ws[1]
             ATA[5] += ws[1]*ws[2]
             ATA[6] += ws[1]*ws[3]
-            ATA[7] += ws[2]**2
+            ATA[7] += ws[2]*ws[2]
             ATA[8] += ws[2]*ws[3]
-            ATA[9] += ws[3]**2
+            ATA[9] += ws[3]*ws[3]
 
         #print(ATA)
         CholeskyFactorization(xTAI, ATA, 4)
