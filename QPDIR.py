@@ -26,7 +26,7 @@ def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
 
 # ----- updateDisplacementField ----- #
 
-def updateDisplacementField(F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz):
+def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz):
     #print("update displacement field...")
     obj = 0
     cc  = 0
@@ -34,7 +34,8 @@ def updateDisplacementField(F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry,
     count = 0
     while count < L:
         # search for block matching
-        searchMin(count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+
         # sort for minimizers
         sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
 
@@ -50,7 +51,98 @@ def updateDisplacementField(F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry,
 
     return obj, cc
 
-def searchMin(count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
+def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
+    SN = (2*sx + 1)*(2*sy + 1)*(2*sz + 1)
+    RN = (2*rx + 1)*(2*ry + 1)*(2*rz + 1)
+    MEMSIZE = RN
+
+    for bid in range(BLOCKS):
+        src    = np.zeros(3, dtype=int)
+        tar    = np.zeros(3, dtype=int)
+        d      = np.zeros(3)
+        minVal = np.zeros(2)
+        val    = np.zeros(2)
+        vals   = np.zeros(MEMSIZE, dtype=int)
+
+        pid = bid + idx
+        if pid < L:
+            src[0] = S[0][pid]
+            src[1] = S[1][pid]
+            src[2] = S[2][pid]
+
+            d[0] = Y[0][pid]
+            d[1] = Y[1][pid]
+            d[2] = Y[2][pid]
+
+            tar[0] = src[0] + round(d[0])
+            tar[1] = src[1] + round(d[1])
+            tar[2] = src[2] + round(d[2])
+
+            d[0] += src[0] - tar[0]
+            d[1] += src[1] - tar[1]
+            d[2] += src[2] - tar[2]
+
+            p_count = 0
+            # CHW
+            for k in range(-rz, rz+1):
+                for i in range(-rx, rx+1):
+                    for j in range(-ry, ry+1):
+                        # get intensity vals
+                        vals[p_count] = moving[k + src[2]][i + src[0]][j + src[1]]
+                        p_count += 1
+
+            minVal[0] = 1000000
+            for tid in range(THREADS):
+                for count in range(tid, SN, THREADS):
+                    tk = int(  count / (2*sz + 1)**2 - sz )
+                    ti = int( (count % (2*sx + 1)**2) / (2*sx + 1) - sx )
+                    tj = int( (count % (2*sy + 1)**2) % (2*sy + 1) - sy )
+
+                    nrm = (tk - d[2])**2 + (ti - d[0])**2 + (tj - d[1])**2
+
+                    tk += tar[2]
+                    ti += tar[0]
+                    tj += tar[1]
+
+                    x  = 0
+                    y  = 0
+                    x2 = 0
+                    y2 = 0
+                    xy = 0
+
+                    p_count = 0
+                    for k in range(-rz, rz+1):
+                        for i in range(-rx, rx+1):
+                            for j in range(-ry, ry+1):
+                                p = vals[p_count]
+                                q = fixed[k + tk][i + ti][j + tj]
+
+                                x  += p
+                                y  += q
+                                x2 += p*p
+                                y2 += q*q
+                                xy += p*q
+
+                                p_count += 1
+
+                    # objective function value
+                    if (x2 - x**2/RN) <= 0 or (y2 - y**2/RN) <= 0:
+                        print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
+                        val[0] = 1 + 1/(2*mu)*nrm
+                        val[1] = 1
+                    else:
+                        tmp    = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
+                        val[0] = tmp + 1/(2*mu)*nrm
+                        val[1] = 1 - tmp**2
+
+                    # update minVal
+                    if minVal[0] > val[0]:
+                        minVal  = val
+                        idx_tmp = count
+
+            F[0][bid*THREADS + tid] = minVal[0]
+            F[1][bid*THREADS + tid] = minVal[1]
+            I[bid*THREADS + tid]    = idx_tmp
 
     return 0
 

@@ -67,7 +67,7 @@ dpz = 3
 # ------ set memory ------ #
 
 # mask image
-mask = moving_img.get_fdata().reshape(H*W*C)
+mask_data = moving_img.get_fdata().reshape(H*W*C)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3, H*W*C), dtype=int)
@@ -108,13 +108,14 @@ for Kid in range(K):
     print("----------------- Kid =", Kid, "-----------------")
 
     # throwDarts
-    L = throwDarts(mask, z_ws, dpx, dpy, dpz, H, W, C, Kid)
+    L = throwDarts(mask_data, z_ws, dpx, dpy, dpz, H, W, C, Kid)
 
     # init guess of displacement field: 0
     for i in range(L):
         Z[0][i] = 0
         Z[1][i] = 0
         Z[2][i] = 0
+
         Zold[0][i] = Z[0][i]
         Zold[1][i] = Z[1][i]
         Zold[2][i] = Z[2][i]
@@ -134,7 +135,7 @@ for Kid in range(K):
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
 
             # update displacement field
-            objVal, ccVal = updateDisplacementField(F, I, z_ws, Z, Y, L, localVals, mu, SWin, SWin, SWin, rx, ry, rz)
+            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, SWin, SWin, SWin, rx, ry, rz)
 
             # compute diff between iters
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
@@ -165,12 +166,13 @@ for Kid in range(K):
 
 sol = np.zeros(6*dL)
 for i in range(dL):
-    sol[i       ] = d_ws[0][i]
+    sol[i]        = d_ws[0][i]
     sol[i + 1*dL] = d_ws[1][i]
     sol[i + 2*dL] = d_ws[2][i]
-    sol[i + 3*dL] =    d[0][i]
-    sol[i + 4*dL] =    d[1][i]
-    sol[i + 5*dL] =    d[2][i]
+
+    sol[i + 3*dL] = d[0][i]
+    sol[i + 4*dL] = d[1][i]
+    sol[i + 5*dL] = d[2][i]
 
 with open('weights', 'w') as f:
     f.write("%s\n" % dL)
