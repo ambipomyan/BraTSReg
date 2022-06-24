@@ -83,12 +83,11 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
             d[2] += src[2] - tar[2]
 
             p_count = 0
-            # CHW
-            for k in range(-rz, rz+1):
-                for i in range(-rx, rx+1):
-                    for j in range(-ry, ry+1):
+            for i in range(-rx, rx+1):
+                for j in range(-ry, ry+1):
+                    for k in range(-rz, rz+1):
                         # get intensity vals
-                        vals[p_count] = moving[k + src[2]][i + src[0]][j + src[1]]
+                        vals[p_count] = moving[i + src[0]][j + src[1]][k + src[2]]
                         p_count += 1
 
             minVal[0] = 1000000
@@ -111,11 +110,11 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     xy = 0
 
                     p_count = 0
-                    for k in range(-rz, rz+1):
-                        for i in range(-rx, rx+1):
-                            for j in range(-ry, ry+1):
+                    for i in range(-rx, rx+1):
+                        for j in range(-ry, ry+1):
+                            for k in range(-rz, rz+1):
                                 p = vals[p_count]
-                                q = fixed[k + tk][i + ti][j + tj]
+                                q = fixed[i + ti][j + tj][k + tk]
 
                                 x  += p
                                 y  += q
@@ -127,7 +126,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
 
                     # objective function value
                     if (x2 - x**2/RN) <= 0 or (y2 - y**2/RN) <= 0:
-                        print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
+                        #print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
                         val[0] = 1 + 1/(2*mu)*nrm
                         val[1] = 1
                     else:
