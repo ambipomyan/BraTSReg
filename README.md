@@ -18,26 +18,27 @@ nibabel
 ## sample run
 ```
 input dims(HWC): 240 240 155
-block dims(HWC): 3 3 1
-init search window radius: 15
+dtype: int16
+block radius(HWC): 3 3 1
+init search window radius(HWC): 15 15 15
 alpha: 1.0
------------------ Kid = 0 -----------------
-throwing darts...
-# of list points for mls: 4739
-voxel dim by mm (HWC): 1 1 1
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 15
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 8
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 4
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 2
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 1
 ----------------- Kid = 1 -----------------
 throwing darts...
-# of list points for mls: 33
+# of list points for mls: 4466
 voxel dim by mm (HWC): 1 1 1
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 15
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 8
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 4
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 2
-iter#: 0 F(Z): 0 f(z): 0 ||AX-Z||: 0 ||Xk+1-Xk|| 0 sw: 1
-
+iter#: 0 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 45.00000000000749 ||Xk+1-Xk|| 45.00000000000749 sw: 15
+iter#: 1 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 0.0 ||Xk+1-Xk|| 45.00000000000749 sw: 15
+iter#: 0 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 21.00000000000108 ||Xk+1-Xk|| 23.999999999994497 sw: 8
+iter#: 1 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 0.0 ||Xk+1-Xk|| 23.999999999994497 sw: 8
+iter#: 0 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 11.999999999997248 ||Xk+1-Xk|| 11.999999999997248 sw: 4
+iter#: 1 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 0.0 ||Xk+1-Xk|| 11.999999999997248 sw: 4
+iter#: 0 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 5.999999999998624 ||Xk+1-Xk|| 5.999999999998624 sw: 2
+iter#: 1 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 0.0 ||Xk+1-Xk|| 5.999999999998624 sw: 2
+iter#: 0 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 2.999999999999312 ||Xk+1-Xk|| 2.999999999999312 sw: 1
+iter#: 1 F(Z): 0.0 f(z): 0.0 ||AX-Z||: 0.0 ||Xk+1-Xk|| 2.999999999999312 sw: 1
+----------------- Kid = 2 -----------------
+throwing darts...
+# of list points for mls: 48701
+voxel dim by mm (HWC): 1 1 1
+...
 ```
