@@ -2,6 +2,8 @@ import numpy as np
 import math
 import random
 
+from utils import multMat, multVec, axpby
+
 # block matching settings for tests
 BLOCKS  = 512
 THREADS = 256
@@ -11,7 +13,7 @@ BUCKETS = 512
 # ----- computeFunctinonRes ----- #
 
 def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
-    #print("compute objective function...")
+    #print("update objective function...")
     for i in range(3):
         for j in range(L): b[j] = Z[i][j]/mu
         cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu)
@@ -20,9 +22,47 @@ def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
     return 0
 
 def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
+    rTr = initCG(x, r, b, p, L)
+    tol = 0.001
+    if rTr < tol: return 0
+
+    max_iter = L
+    for i in range(max_iter):
+        # update x
+        multMat(A, KNN, knn, b, p, Ap, L, mu)
+        a = rTr/multVec(Ap, p, L)
+        axpby(x, 1, x, a, p, L)
+
+        # update r
+        axpby(r, 1, r, a, Ap, L)
+        rTr_new = multVec(r, r, L)
+
+        # check convergency
+        if rTr_new < tol: break
+
+        # update p
+        beta = rTr_new/rTr
+        rTr  = rTr_new
+        axpby(p, -1, r, beta, p, L)
 
     return 0
 
+def initCG(x, r, b, p, L):
+    vals = np.zeros(THREADS)
+    for tid in range(THREADS):
+        vals[tid] = 0
+        for i in range(tid, L, THREADS):
+            r[i] = -1*b[i]
+            p[i] = b[i]
+            x[i] = 0
+
+            vals[tid] += b[i]**2
+
+    rTr = 0
+    for tid in range(THREADS):
+        rTr += vals[tid]
+
+    return rTr
 
 # ----- updateDisplacementField ----- #
 
@@ -37,7 +77,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
         #searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
 
         # sort for minimizers
-        sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
+        #sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
 
         for i in range(BLOCKS):
             obj += localVals[0][i]

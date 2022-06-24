@@ -2,6 +2,11 @@ import numpy as np
 import math
 import random
 
+# block matching settings for tests
+BLOCKS  = 512
+THREADS = 256
+BUCKETS = 512
+
 def randomPickInt(N):
     res = random.randint(0, N-1)
 
@@ -90,5 +95,59 @@ def compute2Norm(S, i, j, xmm, ymm, zmm):
     res = math.sqrt( ((S[0][i] - S[0][j])*xmm)**2 + \
                      ((S[1][i] - S[1][j])*ymm)**2 + \
                      ((S[2][i] - S[2][j])*zmm)**2    )
-    
+
     return res
+
+def multMat(A, KNN, knn, x, y, z, L, mu):
+    multA(A, KNN, knn, x, z, L)
+    multAT(A, KNN, knn, y, z, L)
+
+    axpby(y, 1, y, 1/mu, x)
+
+    return 0
+
+def multA(A, KNN, knn, x, z, L):
+    for tid in range(THREADS):
+        for i in range(tid, L, THREADS):
+            val = 0
+            for j in range(knn):
+                idx  = KNN[i*knn + j]
+                val += A[i*knn + j]*x[idx]
+
+            z[i] = val - x[i]
+
+    return 0
+
+def multAT(A, KNN, knn, y, z, L):
+    for i in range(L):
+        y[i] = -z[i]
+
+    for tid in range(THREADS):
+        for i in range(tid, L, THREADS):
+            for j in range(knn):
+                idx     = KNN[i*knn + j]
+                y[idx] += A[i*knn + j]*z[i]
+
+    return 0
+
+def multVec(x, y, L):
+    # inner product
+    vals = np.zeros(THREADS)
+    for tid in range(THREADS):
+        vals[tid] = 0
+        for i in range(tid, L, THREADS):
+            vals[tid] += x[i]*y[i]
+
+    val = 0
+    for tid in range(THREADS):
+        val += vals[tid]
+
+    return val
+
+def axpby(z, a, x, b, y, L):
+    # z = ax + by
+    for tid in range(THREADS):
+        for i in range(tid, L, THREADS):
+            z[i] = a*x[i] + b*y[i]
+
+    return 0
