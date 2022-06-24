@@ -8,6 +8,7 @@ from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR import computeFuncRes, updateDisplacementField, computeIterDiff
+from ImgSeg import convert2Int8, createMask
 
 # block matching settings for tests
 BLOCKS  = 512
@@ -32,18 +33,39 @@ W = fixed_data.shape[1]
 C = fixed_data.shape[2]
 print("input dims(HWC):", H, W, C)
 
+# check image type
+res = (fixed_img.get_data_dtype() == np.dtype(np.int8))
+if res == True: print("dtype: int8")
+
+res = (fixed_img.get_data_dtype() == np.dtype(np.int16))
+if res == True: print("dtype: int16")
+
+'''
+else:
+    print("convert images to int8...")
+    # if applied, consider about changing the var names
+    fixed_data  = convert2Int8(fixed_data, H, W, C)
+    moving_data = convert2Int8(moving_data, H, W, C)
+'''
+
+'''
+for i in range(H):
+    for j in range(W):
+        if fixed_data[i][j][75] != 0: print(fixed_data[i][j][75])
+'''
+
 # ----- set parameters ----- #
 
 # init block size
 rx = 3
 ry = 3
 rz = 1
-print("block dims(HWC):", rx, ry, rz)
+print("block radius(HWC):", rx, ry, rz)
 
 # search window size (and penalty parameter mu)
 sw = 15 # 15x15x15 window
 #mu = sw**2 / 2
-print("init search window radius:", sw)
+print("init search window radius(HWC):", sw, sw, sw)
 
 # regularization parameter
 alpha = 1.0
@@ -60,14 +82,14 @@ maxL = 500000
 knn  = 50
 
 # point cloud spacing for dart throw, needs to be tuned
-dpx = 15 # larger numbers for quicker tests
-dpy = 15
-dpz = 3
+dpx = 3 # larger numbers for quicker tests
+dpy = 3
+dpz = 1
 
 # ------ set memory ------ #
 
-# mask image
-mask_data = moving_img.get_fdata().reshape(H*W*C)
+# create mask image
+mask_data = createMask(moving_data, H, W, C)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3, H*W*C), dtype=int)
@@ -100,11 +122,11 @@ I = np.zeros(BLOCKS*THREADS, dtype=int)
 localVals = np.zeros((2, BLOCKS))
 
 # solution counter for d
-dL = 0 # int
+dL = 0
 
 # ----- run algorithm ----- #
 
-for Kid in range(K):
+for Kid in range(1, K+1):
     print("----------------- Kid =", Kid, "-----------------")
 
     # throwDarts
