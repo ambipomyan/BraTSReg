@@ -34,7 +34,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     count = 0
     while count < L:
         # search for block matching
-        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+        #searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
 
         # sort for minimizers
         sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
@@ -93,9 +93,9 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
             minVal[0] = 1000000
             for tid in range(THREADS):
                 for count in range(tid, SN, THREADS):
-                    ti = int( (count % (2*sx + 1)**2) / (2*sx + 1) - sx )
-                    tj = int( (count % (2*sy + 1)**2) % (2*sy + 1) - sy )
-                    tk = int(  count / (2*sz + 1)**2 - sz )
+                    ti = int( (count%(2*sx + 1)**2)/(2*sx + 1) - sx )
+                    tj = int( (count%(2*sy + 1)**2)%(2*sy + 1) - sy )
+                    tk = int(  count/(2*sz + 1)**2 - sz )
 
                     nrm = (ti - d[0])**2 + (tj - d[1])**2 + (tk - d[2])**2
 
@@ -149,7 +149,46 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
 
     return 0
 
-def sortMin(count, F, I, Z, L, localVals, sx, sy, sz):
+def sortMin(idx, F, I, Z, L, localVals, sx, sy, sz):
+    for bid in range(BLOCKS):
+        sol = np.zeros(3, dtype=int)
+
+        localVals[0][bid] = 0
+        localVals[1][bid] = 0
+
+        vals    = np.zeros((2, THREADS))
+        idx_tmp = np.zeros(THREADS, dtype=int)
+
+        pid = bid + idx
+        if pid < L:
+            for tid in range(THREADS):
+                vals[0][tid] = F[0][bid*THREADS + tid]
+                vals[1][tid] = F[1][bid*THREADS + tid]
+                idx_tmp[tid] = I[bid*THREADS + tid]
+
+            ID = int(round(THREADS/2))
+            while ID != 0:
+                for tid in range(THREADS):
+                    if tid < ID:
+                        if vals[0][tid] > vals[0][tid + ID]:
+                           vals[0][tid] = vals[0][tid + ID]
+                           vals[1][tid] = vals[1][tid + ID]
+                           idx_tmp[tid] = idx_tmp[tid + ID]
+
+                ID = int(round(ID/2))
+
+            # Update solution of the displacement field
+            ID = idx_tmp[0]
+            localVals[0][bid] = vals[0][0]
+            localVals[1][bid] = vals[1][0]
+
+            sol[0] = (ID%(2*sx + 1)**2)/(2*sx + 1) - sx
+            sol[1] = (ID%(2*sy + 1)**2)%(2*sy + 1) - sy
+            sol[2] =  ID/(2*sz + 1)**2 - sz
+
+            Z[0][pid] = sol[0]
+            Z[1][pid] = sol[1]
+            Z[2][pid] = sol[2]
 
     return 0
 
