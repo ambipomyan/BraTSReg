@@ -93,15 +93,15 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
             minVal[0] = 1000000
             for tid in range(THREADS):
                 for count in range(tid, SN, THREADS):
-                    tk = int(  count / (2*sz + 1)**2 - sz )
                     ti = int( (count % (2*sx + 1)**2) / (2*sx + 1) - sx )
                     tj = int( (count % (2*sy + 1)**2) % (2*sy + 1) - sy )
+                    tk = int(  count / (2*sz + 1)**2 - sz )
 
-                    nrm = (tk - d[2])**2 + (ti - d[0])**2 + (tj - d[1])**2
+                    nrm = (ti - d[0])**2 + (tj - d[1])**2 + (tk - d[2])**2
 
-                    tk += tar[2]
                     ti += tar[0]
                     tj += tar[1]
+                    tk += tar[2]
 
                     x  = 0
                     y  = 0
@@ -139,9 +139,13 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                         minVal  = val
                         idx_tmp = count
 
-            F[0][bid*THREADS + tid] = minVal[0]
-            F[1][bid*THREADS + tid] = minVal[1]
-            I[bid*THREADS + tid]    = idx_tmp
+                F[0][bid*THREADS + tid] = minVal[0]
+                F[1][bid*THREADS + tid] = minVal[1]
+
+                I[bid*THREADS + tid]    = idx_tmp
+            # end of tid loop
+        # end of if pid < L
+    # end of bid loop
 
     return 0
 
