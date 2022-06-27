@@ -37,15 +37,15 @@ print("input dims(HWC):", H, W, C)
 #############
 n_slice = 100
 #############
-C = 10
+C = 5
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
 print("sliced input dims(HWC):", H, W, C)
 
-for i in range(H):
-    for j in range(W):
-        for k in range(C):
+for k in range(C):
+    for i in range(H):
+        for j in range(W):
             fixed_data[k][i][j]  = fixed_data_raw[i][j][n_slice + k]
             moving_data[k][i][j] = moving_data_raw[i][j][n_slice + k]
 
@@ -66,20 +66,6 @@ if res == True: print("dtype: int8")
 
 res = (fixed_img.get_data_dtype() == np.dtype(np.int16))
 if res == True: print("dtype: int16")
-
-'''
-else:
-    print("convert images to int8...")
-    # if applied, consider about changing the var names
-    fixed_data  = convert2Int8(fixed_data, H, W, C)
-    moving_data = convert2Int8(moving_data, H, W, C)
-'''
-
-'''
-for i in range(H):
-    for j in range(W):
-        if fixed_data[i][j][75] != 0: print(fixed_data[i][j][75])
-'''
 
 # ----- set parameters ----- #
 

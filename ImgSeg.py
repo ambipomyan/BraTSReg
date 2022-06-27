@@ -8,9 +8,9 @@ def convert2Int8(data, H, W, C):
     min_tmp = 0
     #print("Max:", max_tmp, "Min:", min_tmp)
     tmp = np.zeros((C, H, W), dtype=int)
-    for i in range(H):
-        for j in range(W):
-            for k in range(C):
+    for k in range(C):
+        for i in range(H):
+            for j in range(W):
                 tmp[k][i][j] = (data[k][i][j] - min_tmp)/max_tmp*255 + 0
 
     return tmp
@@ -20,9 +20,9 @@ def createMask(data, H, W, C):
     mask_data = convert2Int8(data, H, W, C)
 
     # raw segmentation based on intensity
-    for i in range(H):
-        for j in range(W):
-            for k in range(C):
+    for k in range(C):
+        for i in range(H):
+            for j in range(W):
                 if mask_data[k][i][j] > 160: # use small value for faster tests
                     mask_data[k][i][j] = 2
                 elif mask_data[k][i][j] > 0:
