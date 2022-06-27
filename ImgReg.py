@@ -8,7 +8,7 @@ from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR import computeFuncRes, updateDisplacementField, computeIterDiff
-from ImgSeg import convert2Int8, createMask
+from ImgSeg import convert2Int8, createMask, saveImg
 
 # block matching settings for tests
 BLOCKS  = 512
@@ -24,14 +24,39 @@ following = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_0
 # load image
 fixed_img   = nib.load(orignial)
 moving_img  = nib.load(following)
-fixed_data  = fixed_img.get_fdata()
-moving_data = moving_img.get_fdata()
+fixed_data_raw  = fixed_img.get_fdata()
+moving_data_raw = moving_img.get_fdata()
 
 # check image shape
-H = fixed_data.shape[0]
-W = fixed_data.shape[1]
-C = fixed_data.shape[2]
+H = fixed_data_raw.shape[0]
+W = fixed_data_raw.shape[1]
+C = fixed_data_raw.shape[2]
 print("input dims(HWC):", H, W, C)
+
+# get image slices
+#############
+n_slice = 100
+#############
+C = 3
+#####
+fixed_data  = np.zeros((C, H, W), dtype=int)
+moving_data = np.zeros((C, H, W), dtype=int)
+print("sliced input dims(HWC):", H, W, C)
+
+for i in range(H):
+    for j in range(W):
+        for k in range(C):
+            fixed_data[k][i][j]  = fixed_data_raw[i][j][n_slice + k]
+            moving_data[k][i][j] = moving_data_raw[i][j][n_slice + k]
+
+# create input image pairs and mask
+mask_data   = createMask(moving_data, H, W, C)
+
+# saving images for visualization
+print("saving images...")
+saveImg(fixed_data,  H, W, "fixed.jpg" , 0.2)
+saveImg(moving_data, H, W, "moving.jpg", 0.2)
+saveImg(mask_data,   H, W, "mask.jpg"  , 100)
 
 # check image type
 res = (fixed_img.get_data_dtype() == np.dtype(np.int8))
@@ -88,8 +113,8 @@ dpz = 1
 
 # ------ set memory ------ #
 
-# create mask image
-mask_data = createMask(moving_data, H, W, C)
+# mask image
+mask_data = mask_data.reshape(H*W*C)
 
 # displacement field d and auxiliary variables z
 d    = np.zeros((3, H*W*C), dtype=int)
