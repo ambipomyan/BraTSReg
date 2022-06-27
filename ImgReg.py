@@ -37,8 +37,8 @@ print("input dims(HWC):", H, W, C)
 #############
 n_slice = 100
 #############
-C = 3
-#####
+C = 10
+######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
 print("sliced input dims(HWC):", H, W, C)
@@ -50,12 +50,14 @@ for i in range(H):
             moving_data[k][i][j] = moving_data_raw[i][j][n_slice + k]
 
 # create input image pairs and mask
+fixed_data  = convert2Int8(fixed_data, H, W, C)
+moving_data = convert2Int8(moving_data, H, W, C)
 mask_data   = createMask(moving_data, H, W, C)
 
 # saving images for visualization
 print("saving images...")
-saveImg(fixed_data,  H, W, "fixed.jpg" , 0.2)
-saveImg(moving_data, H, W, "moving.jpg", 0.2)
+saveImg(fixed_data,  H, W, "fixed.jpg" , 1)
+saveImg(moving_data, H, W, "moving.jpg", 1)
 saveImg(mask_data,   H, W, "mask.jpg"  , 100)
 
 # check image type
