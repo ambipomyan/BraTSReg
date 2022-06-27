@@ -127,7 +127,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                 for j in range(-ry, ry+1):
                     for k in range(-rz, rz+1):
                         # get intensity vals
-                        vals[p_count] = moving[i + src[0]][j + src[1]][k + src[2]]
+                        vals[p_count] = moving[k + src[2]][i + src[0]][j + src[1]]
                         p_count += 1
 
             minVal[0] = 1000000
@@ -154,7 +154,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                         for j in range(-ry, ry+1):
                             for k in range(-rz, rz+1):
                                 p = vals[p_count]
-                                q = fixed[i + ti][j + tj][k + tk]
+                                q = fixed[k + tk][i + ti][j + tj]
 
                                 x  += p
                                 y  += q
