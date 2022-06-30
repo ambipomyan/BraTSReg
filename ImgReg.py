@@ -37,7 +37,7 @@ print("input dims(HWC):", H, W, C)
 #############
 n_slice = 100
 #############
-C = 5
+C = 3
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
