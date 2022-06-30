@@ -76,9 +76,13 @@ rz = 1
 print("block radius(HWC):", rx, ry, rz)
 
 # search window size (and penalty parameter mu)
-sw = 15 # 15x15x15 window
+# 15x15x1 window, sx == sy
+sx = 15
+sy = 15 
+sz = 1
+sw = 15
 #mu = sw**2 / 2
-print("init search window radius(HWC):", sw, sw, sw)
+print("init search window radius(HWC):", sx, sy, sz)
 
 # regularization parameter
 alpha = 1.0
@@ -170,7 +174,7 @@ for Kid in range(1, K+1):
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
 
             # update displacement field
-            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, SWin, SWin, SWin, rx, ry, rz)
+            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz)
 
             # compute diff between iters
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
