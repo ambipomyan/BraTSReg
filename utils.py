@@ -102,7 +102,7 @@ def multMat(A, KNN, knn, x, y, z, L, mu):
     multA(A, KNN, knn, x, z, L)
     multAT(A, KNN, knn, y, z, L)
 
-    axpby(y, 1, y, 1/mu, x, L)
+    axpby(y, 1, y, mu, x, L)
 
     return 0
 

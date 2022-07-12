@@ -76,7 +76,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     count = 0
     while count < L:
         # search for block matching
-        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+        #searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
 
         # sort for minimizers
         sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
@@ -236,9 +236,10 @@ def sortMin(idx, F, I, Z, L, localVals, sx, sy, sz):
             localVals[0][bid] = vals[0][0]
             localVals[1][bid] = vals[1][0]
 
+            # based on the assumption: sx == sy
             sol[0] = (ID%(2*sx + 1)**2)/(2*sx + 1) - sx
-            sol[1] = (ID%(2*sy + 1)**2)%(2*sy + 1) - sy
-            sol[2] =  ID/(2*sz + 1)**2 - sz
+            sol[1] = (ID%(2*sx + 1)**2)%(2*sx + 1) - sx
+            sol[2] =  ID/(2*sx + 1)**2 - sz
 
             Z[0][pid] = sol[0]
             Z[1][pid] = sol[1]
