@@ -23,8 +23,8 @@ def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
 
 def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
     rTr = initCG(x, r, b, p, L)
-    print("rTr:", rTr)
-    tol = 0.001
+    #print("rTr:", rTr)
+    tol = 0.005
     if rTr < tol: return 0
 
     max_iter = L
@@ -37,7 +37,7 @@ def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
         # update r
         axpby(r, 1, r, a, Ap, L)
         rTr_new = multVec(r, r, L)
-        print("rTr_new:", rTr_new)
+        #print("rTr_new:", rTr_new)
 
         # check convergency
         if rTr_new < tol: break
@@ -108,36 +108,36 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
 
         pid = bid + idx
         if pid < L:
-            print("S[0], S[1], S[2], pid:", S[0][pid], S[1][pid], S[2][pid], pid)
+            #print("S[0], S[1], S[2], pid:", S[0][pid], S[1][pid], S[2][pid], pid)
 
             src[0] = S[0][pid]
             src[1] = S[1][pid]
             src[2] = S[2][pid]
 
-            print("src[0], src[1], src[2]:", src[0], src[1], src[2])
+            #print("src[0], src[1], src[2]:", src[0], src[1], src[2])
 
             d[0] = Y[0][pid]
             d[1] = Y[1][pid]
             d[2] = Y[2][pid]
 
-            print("Y[0], Y[1], Y[2], pid:", Y[0][pid], Y[1][pid], Y[2][pid], pid)
+            #print("Y[0], Y[1], Y[2], pid:", Y[0][pid], Y[1][pid], Y[2][pid], pid)
 
             tar[0] = src[0] + round(d[0])
             tar[1] = src[1] + round(d[1])
             tar[2] = src[2] + round(d[2])
 
-            print("tar[0], tar[1], tar[2]:", tar[0], tar[1], tar[2])
+            #print("tar[0], tar[1], tar[2]:", tar[0], tar[1], tar[2])
 
             d[0] += src[0] - tar[0]
             d[1] += src[1] - tar[1]
             d[2] += src[2] - tar[2]
 
-            print("d[0], d[1], d[2]:", d[0], d[1], d[2])
+            #print("d[0], d[1], d[2]:", d[0], d[1], d[2])
 
             p_count = 0
-            for k in range(-rz, rz):
-                for i in range(-rx, rx):
-                    for j in range(-ry, ry):
+            for k in range(-rz+1, rz-1):
+                for i in range(-rx+1, rx-1):
+                    for j in range(-ry+1, ry-1):
                         # get intensity vals
                         vals[p_count] = moving[k + src[2]][i + src[0]][j + src[1]]
                         p_count += 1
@@ -149,14 +149,16 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     ti = int( (count%(2*sx + 1)**2)/(2*sx + 1) - sx )
                     tj = int( (count%(2*sx + 1)**2)%(2*sx + 1) - sx )
                     tk = int(  count/(2*sx + 1)**2             - sz )
-                    print("tk, ti, tj:", tk, ti, tj)
+                    
+                    #print("tk, ti, tj:", tk, ti, tj)
 
                     nrm = (ti - d[0])**2 + (tj - d[1])**2 + (tk - d[2])**2
 
                     ti += tar[0]
                     tj += tar[1]
                     tk += tar[2]
-                    print("tk+tar, ti+tar, tj+tar:", tk, ti, tj)
+                    
+                    #print("tk+tar, ti+tar, tj+tar:", tk, ti, tj)
 
                     x  = 0
                     y  = 0
@@ -165,9 +167,9 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     xy = 0
 
                     p_count = 0
-                    for k in range(-rz, rz):
-                        for i in range(-rx, rx):
-                            for j in range(-ry, ry):
+                    for k in range(-rz+1, rz-1):
+                        for i in range(-rx+1, rx-1):
+                            for j in range(-ry+1, ry-1):
                                 p = vals[p_count]
                                 q = fixed[k + tk][i + ti][j + tj]
 
