@@ -68,7 +68,7 @@ def initCG(x, r, b, p, L):
 
 # ----- updateDisplacementField ----- #
 
-def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz):
+def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C):
     #print("update displacement field...")
     obj = 0
     cc  = 0
@@ -76,7 +76,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     count = 0
     while count < L:
         # search for block matching
-        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz)
+        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
         # sort for minimizers
         sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
@@ -93,7 +93,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
 
     return obj, cc
 
-def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
+def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C):
     SN = (2*sx + 1)*(2*sy + 1)*(2*sz + 1)
     RN = (2*rx + 1)*(2*ry + 1)*(2*rz + 1)
     MEMSIZE = RN
@@ -122,9 +122,9 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
 
             #print("Y[0], Y[1], Y[2], pid:", Y[0][pid], Y[1][pid], Y[2][pid], pid)
 
-            tar[0] = src[0] + round(d[0])
-            tar[1] = src[1] + round(d[1])
-            tar[2] = src[2] + round(d[2])
+            tar[0] = src[0] + int( round(d[0]) )
+            tar[1] = src[1] + int( round(d[1]) )
+            tar[2] = src[2] + int( round(d[2]) )
 
             #print("tar[0], tar[1], tar[2]:", tar[0], tar[1], tar[2])
 
@@ -135,11 +135,17 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
             #print("d[0], d[1], d[2]:", d[0], d[1], d[2])
 
             p_count = 0
-            for k in range(-rz+1, rz-1):
-                for i in range(-rx+1, rx-1):
-                    for j in range(-ry+1, ry-1):
+            for k in range(-rz, rz+1):
+                for i in range(-rx, rx+1):
+                    for j in range(-ry, ry+1):
                         # get intensity vals
-                        vals[p_count] = moving[k + src[2]][i + src[0]][j + src[1]]
+                        t_x = i + src[0]
+                        t_y = j + src[1]
+                        t_z = k + src[2]
+                        if t_x >= H: t_x = H - 1
+                        if t_y >= W: t_y = W - 1
+                        if t_z >= C: t_z = C - 1
+                        vals[p_count] = moving[t_z][t_x][t_y]
                         p_count += 1
 
             minVal[0] = 1000000
@@ -149,7 +155,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     ti = int( (count%(2*sx + 1)**2)/(2*sx + 1) - sx )
                     tj = int( (count%(2*sx + 1)**2)%(2*sx + 1) - sx )
                     tk = int(  count/(2*sx + 1)**2             - sz )
-                    
+
                     #print("tk, ti, tj:", tk, ti, tj)
 
                     nrm = (ti - d[0])**2 + (tj - d[1])**2 + (tk - d[2])**2
@@ -157,7 +163,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     ti += tar[0]
                     tj += tar[1]
                     tk += tar[2]
-                    
+
                     #print("tk+tar, ti+tar, tj+tar:", tk, ti, tj)
 
                     x  = 0
@@ -167,11 +173,17 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz):
                     xy = 0
 
                     p_count = 0
-                    for k in range(-rz+1, rz-1):
-                        for i in range(-rx+1, rx-1):
-                            for j in range(-ry+1, ry-1):
+                    for k in range(-rz, rz+1):
+                        for i in range(-rx, rx+1):
+                            for j in range(-ry, ry+1):
                                 p = vals[p_count]
-                                q = fixed[k + tk][i + ti][j + tj]
+                                t_x = i + ti
+                                t_y = j + tj
+                                t_z = k + tk
+                                if t_x >= H: t_x = H - 1
+                                if t_y >= W: t_y = W - 1
+                                if t_z >= C: t_z = C - 1
+                                q = fixed[t_z][t_x][t_y]
 
                                 x  += p
                                 y  += q

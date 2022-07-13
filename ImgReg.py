@@ -165,7 +165,9 @@ for Kid in range(1, K+1):
     # mls
     mls(z_ws, L, KNN, A, knn, xmm, ymm,zmm)
 
-    maxIter = 10
+    #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
+
+    maxIter = 5
     SWin = sw
     while SWin != 0:
         mu = SWin**2 / 2
@@ -174,7 +176,7 @@ for Kid in range(1, K+1):
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
 
             # update displacement field
-            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz)
+            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
             # compute diff between iters
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
