@@ -261,9 +261,9 @@ def computeIterDiff(Z, Zold, Y, L):
     for i in range(3):
         for j in range(L):
             # MAE
-            nrmABS += abs(Z[i][j] - Y[i][j]) / L
+            nrmABS += abs(Z[i][j] - Y[i][j])
             # diff between iters
-            nrmZ   += abs(Z[i][j] - Zold[i][j]) / L
+            nrmZ   += abs(Z[i][j] - Zold[i][j])
             # update Zold
             Zold[i][j] = Z[i][j]
 
