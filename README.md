@@ -9,6 +9,11 @@ numpy
 nibabel  
 cv2  
 
+## parallelism related
+CUDA 11.4  
+Numba 0.50.1( llvmlite will be included when installing Numba )   
+colorama 0.4.5( >=0.3.9 is fine )  
+
 ## sample run
 ```
 input dims(HWC): 240 240 155
