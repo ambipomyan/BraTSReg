@@ -3,7 +3,41 @@ Prepared for MICCAI 2022 challenge
 
 ## problem located
 performance and tuning
-
+```
+input dims(HWC): 240 240 155
+sliced input dims(HWC): 240 240 3
+saving images...
+dtype: int16
+block radius(HWC): 3 3 1
+init search window radius(HWC): 15 15 1
+alpha: 1.0
+----------------- Kid = 1 -----------------
+throwing darts...
+# of list points for mls: 1237
+voxel dim by mm (HWC): 1 1 1
+iter#: 0 F(Z): 1271.5928954083652 f(z): 1180.1767522444898 ||AX-Z||: 38347 ||Xk+1-Xk|| 38347.0 sw: 15
+iter#: 1 F(Z): 1310.3860760591244 f(z): 1187.3591400231492 ||AX-Z||: 35873 ||Xk+1-Xk|| 38075.615372835884 sw: 15
+iter#: 2 F(Z): 1286.3518920718452 f(z): 1178.4093400355623 ||AX-Z||: 33399 ||Xk+1-Xk|| 37820.0117798434 sw: 15
+iter#: 3 F(Z): 1305.2244759491327 f(z): 1188.7535404793302 ||AX-Z||: 30925 ||Xk+1-Xk|| 38241.07474064156 sw: 15
+iter#: 4 F(Z): 1280.6865176257104 f(z): 1176.7462816466932 ||AX-Z||: 28451 ||Xk+1-Xk|| 37872.3382387807 sw: 15
+iter#: 0 F(Z): 2157.5206929226592 f(z): 1209.6124076244273 ||AX-Z||: 28449 ||Xk+1-Xk|| 39157.996334904325 sw: 8
+iter#: 1 F(Z): 2179.2611535708843 f(z): 1198.5311053793876 ||AX-Z||: 28447 ||Xk+1-Xk|| 38590.96346256239 sw: 8
+iter#: 2 F(Z): 2166.5537975935335 f(z): 1209.5573371431472 ||AX-Z||: 28445 ||Xk+1-Xk|| 39080.19375605859 sw: 8
+iter#: 3 F(Z): 2148.004587779777 f(z): 1197.639000702952 ||AX-Z||: 28443 ||Xk+1-Xk|| 38847.21404467517 sw: 8
+iter#: 4 F(Z): 2174.776879788126 f(z): 1209.827322216489 ||AX-Z||: 28441 ||Xk+1-Xk|| 39009.7143595317 sw: 8
+/home/kyan2/Desktop/BraTSReg/utils.py:139: RuntimeWarning: overflow encountered in double_scalars
+  vals[tid] += x[i]*y[i]
+/home/kyan2/Desktop/BraTSReg/QPDIR.py:46: RuntimeWarning: invalid value encountered in double_scalars
+  beta = rTr_new/rTr
+Traceback (most recent call last):
+  File "ImgReg.py", line 179, in <module>
+    objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+  File "/home/kyan2/Desktop/BraTSReg/QPDIR.py", line 79, in updateDisplacementField
+    searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+  File "/home/kyan2/Desktop/BraTSReg/QPDIR.py", line 125, in searchMin
+    tar[0] = src[0] + int( round(d[0]) )
+OverflowError: cannot convert float infinity to integer
+```
 ## dependency
 numpy  
 nibabel  
