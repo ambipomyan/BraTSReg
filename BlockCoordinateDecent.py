@@ -8,6 +8,9 @@ BUCKETS = 512
 
 from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, CholeskyFactorization, compute2Norm
 
+# GPU parallelism
+from numba import cuda, int16, float32
+
 
 #----- dart throw -----#
 
@@ -111,7 +114,7 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
 
     # compute knn
     for idx in range(0, N, BLOCKS):
-        computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm)
+        computeDist[BLOCKS, THREADS](vals, idx, src, L, S, N, xmm, ymm, zmm)
         countBuckets(vals, L, localKNN, knn, xmm, ymm, zmm)
         formatDist(vals, localVals, localKNN, L, knn) # not necessarily needed
 
@@ -124,21 +127,25 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
     
     return 0
 
+# CUDA kernels
+
+@cuda.jit
 def computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm):
-    for bid in range(BLOCKS):
-        pid = bid + idx
-        if pid < N:
-            for tid in range(THREADS):
-                for i in range(tid, L, THREADS):
-                    di = xmm*(src[0][i] - S[0][pid])
-                    dj = ymm*(src[1][i] - S[1][pid])
-                    dk = zmm*(src[2][i] - S[2][pid])
-                    
-                    dist = math.sqrt(di**2 + dj**2 + dk**2)
+    bid = cuda.blockIdx.x
+    tid = cuda.threadIdx.x
+    pid = bid + idx
 
-                    vals[bid*L + i] = dist
+    if pid < N:
+        for i in range(tid, L, THREADS):
+            di = xmm*(src[0][i] - S[0][pid])
+            dj = ymm*(src[1][i] - S[1][pid])
+            dk = zmm*(src[2][i] - S[2][pid])
 
-    return 0
+            dist = math.sqrt(di**2 + dj**2 + dk**2)
+
+            vals[bid*L + i] = dist
+
+    #return 0
 
 def countBuckets(vals, L, KNN, knn, xmm, ymm, zmm):
     for bid in range(BLOCKS):
