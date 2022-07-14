@@ -9,6 +9,9 @@ BLOCKS  = 512
 THREADS = 256
 BUCKETS = 512
 
+# GPU parallelism
+from numba import cuda
+
 
 # ----- computeFunctinonRes ----- #
 
