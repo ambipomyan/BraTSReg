@@ -18,7 +18,7 @@ from numba import cuda
 def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
     #print("update objective function...")
     for i in range(3):
-        for j in range(L): b[j] = Z[i][j]/mu
+        for j in range(L): b[j] = mu*Z[i][j]
         cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu)
         for j in range(L): Y[i][j] = x[j]
 
@@ -26,21 +26,21 @@ def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
 
 def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
     rTr = initCG(x, r, b, p, L)
-    #print("rTr:", rTr)
+    print("rTr:", rTr)
     tol = 0.005
     if rTr < tol: return 0
 
     max_iter = L
     for i in range(max_iter):
         # update x
-        multMat(A, KNN, knn, b, p, Ap, L, mu)
+        multMat(A, KNN, knn, p, Ap, b, L, mu)
         a = rTr/multVec(Ap, p, L)
         axpby(x, 1, x, a, p, L)
 
         # update r
         axpby(r, 1, r, a, Ap, L)
         rTr_new = multVec(r, r, L)
-        #print("rTr_new:", rTr_new)
+        print("rTr_new:", rTr_new)
 
         # check convergency
         if rTr_new < tol: break
@@ -92,7 +92,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
 
     for i in range(3):
         for j in range(L):
-            Z[i][j] += round(Y[i][j])
+            Z[i][j] += int( round(Y[i][j]) )
 
     return obj, cc
 
@@ -199,12 +199,12 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
                     # objective function value
                     if (x2 - x**2/RN) <= 0 or (y2 - y**2/RN) <= 0:
                         #print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
-                        val[0] = 1 + 1/(2*mu)*nrm
                         val[1] = 1
                     else:
-                        tmp    = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
-                        val[0] = tmp + 1/(2*mu)*nrm
-                        val[1] = 1 - tmp**2
+                        val[1] = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
+                        val[1] = 1 - val[1]**2
+
+                    val[0] = val[1] + mu*nrm
 
                     # update minVal
                     if minVal[0] > val[0]:

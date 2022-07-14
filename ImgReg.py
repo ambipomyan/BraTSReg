@@ -170,10 +170,11 @@ for Kid in range(1, K+1):
     maxIter = 5
     SWin = sw
     while SWin != 0:
-        mu = SWin**2 / 2
+        mu = 1/SWin # use mu to replace 1/(2*mu**2)
+        mu = mu**2
         for i in range(maxIter):
             # update obj function
-            computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, mu)
+            computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, 2*mu)
 
             # update displacement field
             objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C)

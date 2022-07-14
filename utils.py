@@ -100,7 +100,7 @@ def compute2Norm(S, i, j, xmm, ymm, zmm):
 
 def multMat(A, KNN, knn, x, y, z, L, mu):
     multA(A, KNN, knn, x, z, L)
-    multAT(A, KNN, knn, y, z, L)
+    multAT(A, KNN, knn, z, y, L)
 
     axpby(y, 1, y, mu, x, L)
 
@@ -118,7 +118,7 @@ def multA(A, KNN, knn, x, z, L):
 
     return 0
 
-def multAT(A, KNN, knn, y, z, L):
+def multAT(A, KNN, knn, z, y, L):
     for i in range(L):
         y[i] = -z[i]
 
