@@ -9,8 +9,11 @@ BLOCKS  = 512
 THREADS = 256
 BUCKETS = 512
 
+# rx = ry = 3, rz = 1; 147 = 7 x 7 x 3
+MEMSIZE = 147
+
 # GPU parallelism
-from numba import cuda
+from numba import cuda, int16, float32
 
 
 # ----- computeFunctinonRes ----- #
@@ -26,7 +29,7 @@ def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
 
 def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
     rTr = initCG(x, r, b, p, L)
-    print("rTr:", rTr)
+    #print("rTr:", rTr)
     tol = 0.005
     if rTr < tol: return 0
 
@@ -40,7 +43,7 @@ def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
         # update r
         axpby(r, 1, r, a, Ap, L)
         rTr_new = multVec(r, r, L)
-        print("rTr_new:", rTr_new)
+        #print("rTr_new:", rTr_new)
 
         # check convergency
         if rTr_new < tol: break
@@ -79,7 +82,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     count = 0
     while count < L:
         # search for block matching
-        searchMin(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+        searchMin[BLOCKS, THREADS](fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
         # sort for minimizers
         sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
@@ -96,130 +99,127 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
 
     return obj, cc
 
+# CUDA kernels
+
+@cuda.jit
 def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C):
+    bid = cuda.blockIdx.x
+    tid = cuda.threadIdx.x
+    pid = bid + idx
+
     SN = (2*sx + 1)*(2*sy + 1)*(2*sz + 1)
     RN = (2*rx + 1)*(2*ry + 1)*(2*rz + 1)
-    MEMSIZE = RN
+    #MEMSIZE = RN
 
-    for bid in range(BLOCKS):
-        src    = np.zeros(3, dtype=int)
-        tar    = np.zeros(3, dtype=int)
-        d      = np.zeros(3)
-        minVal = np.zeros(2)
-        val    = np.zeros(2)
-        vals   = np.zeros(MEMSIZE, dtype=int)
+    # shared memory
+    vals = cuda.shared.array(shape=(MEMSIZE), dtype=int16)
 
-        pid = bid + idx
-        if pid < L:
-            #print("S[0], S[1], S[2], pid:", S[0][pid], S[1][pid], S[2][pid], pid)
+    if pid < L:
+        #print("S[0], S[1], S[2], pid:", S[0][pid], S[1][pid], S[2][pid], pid)
+        src0 = S[0][pid]
+        src1 = S[1][pid]
+        src2 = S[2][pid]
+        #print("src0, src1, src2:", src0, src1, src2)
 
-            src[0] = S[0][pid]
-            src[1] = S[1][pid]
-            src[2] = S[2][pid]
+        #print("Y[0], Y[1], Y[2], pid:", Y[0][pid], Y[1][pid], Y[2][pid], pid)
+        d0 = Y[0][pid]
+        d1 = Y[1][pid]
+        d2 = Y[2][pid]
+        #print("d0, d1, d2:", d0, d1, d2)
 
-            #print("src[0], src[1], src[2]:", src[0], src[1], src[2])
+        tar0 = src0 + int( round(d0) )
+        tar1 = src1 + int( round(d1) )
+        tar2 = src2 + int( round(d2) )
+        #print("tar0, tar1, tar2:", tar0, tar1, tar2)
 
-            d[0] = Y[0][pid]
-            d[1] = Y[1][pid]
-            d[2] = Y[2][pid]
+        d0 += src0 - tar0
+        d1 += src1 - tar1
+        d2 += src2 - tar2
+        #print("d0, d1, d2:", d0, d1, d2)
 
-            #print("Y[0], Y[1], Y[2], pid:", Y[0][pid], Y[1][pid], Y[2][pid], pid)
-
-            tar[0] = src[0] + int( round(d[0]) )
-            tar[1] = src[1] + int( round(d[1]) )
-            tar[2] = src[2] + int( round(d[2]) )
-
-            #print("tar[0], tar[1], tar[2]:", tar[0], tar[1], tar[2])
-
-            d[0] += src[0] - tar[0]
-            d[1] += src[1] - tar[1]
-            d[2] += src[2] - tar[2]
-
-            #print("d[0], d[1], d[2]:", d[0], d[1], d[2])
-
-            p_count = 0
+        p_count = 0
+        if(tid == 0):
             for k in range(-rz, rz+1):
                 for i in range(-rx, rx+1):
                     for j in range(-ry, ry+1):
                         # get intensity vals
-                        t_x = i + src[0]
-                        t_y = j + src[1]
-                        t_z = k + src[2]
+                        t_x = i + src0
+                        t_y = j + src1
+                        t_z = k + src2
                         if t_x >= H: t_x = H - 1
                         if t_y >= W: t_y = W - 1
                         if t_z >= C: t_z = C - 1
                         vals[p_count] = moving[t_z][t_x][t_y]
                         p_count += 1
+        # _syncthreads, take care for the indent style!
+        cuda.syncthreads()
 
-            minVal[0] = 1000000
-            for tid in range(THREADS):
-                for count in range(tid, SN, THREADS):
-                    # based on the assumption: sx == sy
-                    ti = int( (count%(2*sx + 1)**2)/(2*sx + 1) - sx )
-                    tj = int( (count%(2*sx + 1)**2)%(2*sx + 1) - sx )
-                    tk = int(  count/(2*sx + 1)**2             - sz )
+        minVal0 = 100000000
+        for count in range(tid, SN, THREADS):
+            # based on the assumption: sx == sy
+            ti = int( (count%(2*sx + 1)**2)/(2*sx + 1) - sx )
+            tj = int( (count%(2*sx + 1)**2)%(2*sx + 1) - sx )
+            tk = int(  count/(2*sx + 1)**2             - sz )
+            #print("tk, ti, tj:", tk, ti, tj)
 
-                    #print("tk, ti, tj:", tk, ti, tj)
+            nrm = (ti - d0)**2 + (tj - d1)**2 + (tk - d2)**2
 
-                    nrm = (ti - d[0])**2 + (tj - d[1])**2 + (tk - d[2])**2
+            ti += tar0
+            tj += tar1
+            tk += tar2
+            #print("tk+tar, ti+tar, tj+tar:", tk, ti, tj)
 
-                    ti += tar[0]
-                    tj += tar[1]
-                    tk += tar[2]
+            x  = 0
+            y  = 0
+            x2 = 0
+            y2 = 0
+            xy = 0
 
-                    #print("tk+tar, ti+tar, tj+tar:", tk, ti, tj)
+            p_count = 0
+            for k in range(-rz, rz+1):
+                for i in range(-rx, rx+1):
+                    for j in range(-ry, ry+1):
+                        p = vals[p_count]
+                        t_x = i + ti
+                        t_y = j + tj
+                        t_z = k + tk
+                        if t_x >= H: t_x = H - 1
+                        if t_y >= W: t_y = W - 1
+                        if t_z >= C: t_z = C - 1
+                        q = fixed[t_z][t_x][t_y]
 
-                    x  = 0
-                    y  = 0
-                    x2 = 0
-                    y2 = 0
-                    xy = 0
+                        x  += p
+                        y  += q
+                        x2 += p*p
+                        y2 += q*q
+                        xy += p*q
 
-                    p_count = 0
-                    for k in range(-rz, rz+1):
-                        for i in range(-rx, rx+1):
-                            for j in range(-ry, ry+1):
-                                p = vals[p_count]
-                                t_x = i + ti
-                                t_y = j + tj
-                                t_z = k + tk
-                                if t_x >= H: t_x = H - 1
-                                if t_y >= W: t_y = W - 1
-                                if t_z >= C: t_z = C - 1
-                                q = fixed[t_z][t_x][t_y]
+                        p_count += 1
 
-                                x  += p
-                                y  += q
-                                x2 += p*p
-                                y2 += q*q
-                                xy += p*q
+            # objective function value
+            if (x2 - x**2/RN) <= 0 or (y2 - y**2/RN) <= 0:
+                #print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
+                val1 = 1
+            else:
+                val1 = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
+                val1 = 1 - val1**2
 
-                                p_count += 1
+            val0 = val1 + mu*nrm
 
-                    # objective function value
-                    if (x2 - x**2/RN) <= 0 or (y2 - y**2/RN) <= 0:
-                        #print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
-                        val[1] = 1
-                    else:
-                        val[1] = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
-                        val[1] = 1 - val[1]**2
+            # update minVal
+            if minVal0 > val0:
+                minVal0 = val0
+                minVal1 = val1
+                idx_tmp = count
+        # end of count for loop
 
-                    val[0] = val[1] + mu*nrm
+        F[0][bid*THREADS + tid] = minVal0
+        F[1][bid*THREADS + tid] = minVal1
+        I[bid*THREADS + tid]    = idx_tmp
+    # end of if pid < L
 
-                    # update minVal
-                    if minVal[0] > val[0]:
-                        minVal  = val
-                        idx_tmp = count
-
-                F[0][bid*THREADS + tid] = minVal[0]
-                F[1][bid*THREADS + tid] = minVal[1]
-
-                I[bid*THREADS + tid]    = idx_tmp
-            # end of tid loop
-        # end of if pid < L
-    # end of bid loop
-
-    return 0
+    # no returns 
+    #return 0
 
 def sortMin(idx, F, I, Z, L, localVals, sx, sy, sz):
     for bid in range(BLOCKS):
