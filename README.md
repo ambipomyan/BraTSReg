@@ -55,7 +55,7 @@ iter#: 1 F(Z): 1195.406664965621 f(z): 1172.4009076614823 ||AX-Z||: 0 ||Xk+1-Xk|
 iter#: 0 F(Z): 1195.40395233432 f(z): 1172.4009076614823 ||AX-Z||: 0 ||Xk+1-Xk|| 68.95942049275676 sw: 1
 
 ```
-## visualization
+## visualization(slice#100)
 fixed image:  
 ![fixed image](https://github.com/ambipomyan/BraTSReg/blob/main/fixed.jpg)  
 moving image:  
