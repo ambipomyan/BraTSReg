@@ -9,7 +9,7 @@ BUCKETS = 512
 from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, CholeskyFactorization, compute2Norm
 
 # GPU parallelism
-from numba import cuda, int16, float32
+from numba import cuda, int32, float32
 
 
 #----- dart throw -----#
@@ -115,7 +115,7 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
     # compute knn
     for idx in range(0, N, BLOCKS):
         computeDist[BLOCKS, THREADS](vals, idx, src, L, S, N, xmm, ymm, zmm)
-        countBuckets(vals, L, localKNN, knn, xmm, ymm, zmm)
+        countBuckets[BLOCKS, BUCKETS](vals, L, localKNN, knn, xmm, ymm, zmm)
         formatDist(vals, localVals, localKNN, L, knn) # not necessarily needed
 
         count = 0
@@ -147,57 +147,73 @@ def computeDist(vals, idx, src, L, S, N, xmm, ymm, zmm):
 
     #return 0
 
+@cuda.jit
 def countBuckets(vals, L, KNN, knn, xmm, ymm, zmm):
-    for bid in range(BLOCKS):
-        buckets = np.zeros(1024, dtype=int) # may use shared memory
+    bid = cuda.blockIdx.x
+    tid = cuda.threadIdx.x
 
-        # first pass
-        for tid in range(BUCKETS):    
-            for i in range(tid, L, BUCKETS):
-                val = vals[bid*L + i]
-                d = int(round(val / xmm)) # suppose that xmm == ymm
+    # shared memory
+    buckets = cuda.shared.array(shape=(1024), dtype=int32) # int32 is used for atomic add
+    buckets[tid] = 0
+    buckets[tid + 512] = 0
 
-                if d >= BUCKETS: d = BUCKETS - 1
-                buckets[d + 1] += 1
-                #print("1st pass - d:", d, "d+1:", d+1, "buckets[d+1]:", buckets[d + 1], "i:", i)
+    cuda.syncthreads()
 
-        for tid in range(BUCKETS):
-            p_in  = 0
-            p_out = 1
-            for i in range(9): # 9 = log_2(512)
-                offset = 2**i
-                #print("offset:", offset)
-                p_out = 1 - p_out # swap p_in and p_out
-                p_in  = 1 - p_out
+    # first pass
+    for i in range(tid, L, BUCKETS):
+        val = vals[bid*L + i]
+        # suppose that xmm == ymm
+        d = int(round(val / xmm))
+        if d >= BUCKETS: d = BUCKETS - 1
 
-                if tid >= offset:
-                    buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset]
-                else:
-                    buckets[512*p_out + tid] = buckets[512*p_in + tid]
+        # update bucket, atomic add
+        cuda.atomic.add(buckets, d + 1, 1)
+        #print("1st pass - d:", d, "d+1:", d+1, "buckets[d+1]:", buckets[d + 1], "i:", i)
 
-            buckets[tid] = buckets[512*p_out + tid]
-            #print("buckets[tid]:", buckets[tid], "tid:", tid)
+    cuda.syncthreads()
 
-        # second pass
-        for tid in range(BUCKETS):
-            for i in range(tid, L, BUCKETS):
-                val = vals[bid*L + i]
-                d = int(round(val / xmm)) # suppose that xmm == ymm
+    p_in  = 0
+    p_out = 1
+    for i in range(9): # 9 = log_2(512)
+        offset = 2**i
+        #print("offset:", offset)
+        p_out = 1 - p_out # swap p_in and p_out
+        p_in  = 1 - p_out
 
-                if d >= BUCKETS: d = BUCKETS - 1
-                buckets[d] += 1
-                count = buckets[d]
-                #print("2nd pass - d:", d, "buckets[d]:", count, "i:", i)
+        if tid >= offset:
+            buckets[512*p_out + tid] = buckets[512*p_in + tid] + buckets[512*p_in + tid - offset]
+        else:
+            buckets[512*p_out + tid] = buckets[512*p_in + tid]
 
-                if count < knn: buckets[count + 512] = i
+        cuda.syncthreads()
 
-        # update KNN
-        for tid in range(BUCKETS):
-            if tid < knn: 
-                KNN[bid*knn + tid] = buckets[tid + 512]
-                #print("KNN[bid*knn + tid]:", KNN[bid*knn + tid], "bid*knn + tid:", bid*knn + tid)
+    buckets[tid] = buckets[512*p_out + tid]
+    #print("buckets[tid]:", buckets[tid], "tid:", tid)
 
-    return 0
+    cuda.syncthreads()
+
+
+    # second pass
+    for i in range(tid, L, BUCKETS):
+        val = vals[bid*L + i]
+        # suppose that xmm == ymm
+        d = int(round(val / xmm))
+
+        if d >= BUCKETS: d = BUCKETS - 1
+        # caution: atomic add function returns the OLD val!
+        count = cuda.atomic.add(buckets, d, 1)
+        #print("2nd pass - d:", d, "buckets[d]:", count, "i:", i)
+
+        if count < knn: buckets[count + 512] = i
+
+    cuda.syncthreads()
+
+
+    # update KNN
+    if tid < knn: KNN[bid*knn + tid] = buckets[tid + 512]
+    #print("KNN[bid*knn + tid]:", KNN[bid*knn + tid], "bid*knn + tid:", bid*knn + tid)
+
+
 
 def formatDist(vals, localVals, KNN, L, knn):
     for bid in range(BLOCKS):

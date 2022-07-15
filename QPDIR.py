@@ -13,7 +13,7 @@ BUCKETS = 512
 MEMSIZE = 147
 
 # GPU parallelism
-from numba import cuda, int16, float32
+from numba import cuda, int32, float32
 
 
 # ----- computeFunctinonRes ----- #
@@ -112,7 +112,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
     #MEMSIZE = RN
 
     # shared memory
-    vals = cuda.shared.array(shape=(MEMSIZE), dtype=int16)
+    vals = cuda.shared.array(shape=(MEMSIZE), dtype=int32)
 
     if pid < L:
         #print("S[0], S[1], S[2], pid:", S[0][pid], S[1][pid], S[2][pid], pid)
