@@ -60,13 +60,6 @@ saveImg(fixed_data,  H, W, C, "fixed_test.jpg" , 1)
 saveImg(moving_data, H, W, C, "moving_test.jpg", 1)
 saveImg(mask_data,   H, W, C, "mask_test.jpg"  , 100)
 
-# check image type
-res = (fixed_img.get_data_dtype() == np.dtype(np.int8))
-if res == True: print("dtype: int8")
-
-res = (fixed_img.get_data_dtype() == np.dtype(np.int16))
-if res == True: print("dtype: int16")
-
 # ----- set parameters ----- #
 
 # init block size
