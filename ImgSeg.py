@@ -35,11 +35,12 @@ def createMask(data, H, W, C):
 
 # ----- visualization ----- #
 
-def saveImg(img_data, H, W, file_name, scale):
+def saveImg(img_data, H, W, C, file_name, scale):
     tmp = np.zeros((H, W), dtype=int)
+    sec = int( round(C/2) )
     for i in range(H):
         for j in range(W):
-            tmp[i][j] = img_data[0][i][j]*scale
+            tmp[i][j] = img_data[sec][i][j]*scale
 
     cv2.imwrite(file_name, tmp)
 

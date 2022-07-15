@@ -56,9 +56,9 @@ mask_data   = createMask(moving_data, H, W, C)
 
 # saving images for visualization
 print("saving images...")
-saveImg(fixed_data,  H, W, "fixed.jpg" , 1)
-saveImg(moving_data, H, W, "moving.jpg", 1)
-saveImg(mask_data,   H, W, "mask.jpg"  , 100)
+saveImg(fixed_data,  H, W, C, "fixed.jpg" , 1)
+saveImg(moving_data, H, W, C, "moving.jpg", 1)
+saveImg(mask_data,   H, W, C, "mask.jpg"  , 100)
 
 # check image type
 res = (fixed_img.get_data_dtype() == np.dtype(np.int8))
