@@ -116,7 +116,7 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
     for idx in range(0, N, BLOCKS):
         computeDist[BLOCKS, THREADS](vals, idx, src, L, S, N, xmm, ymm, zmm)
         countBuckets[BLOCKS, BUCKETS](vals, L, localKNN, knn, xmm, ymm, zmm)
-        formatDist(vals, localVals, localKNN, L, knn) # not necessarily needed
+        #formatDist[BLOCKS, knn](vals, localVals, localKNN, L, knn) # not necessarily needed
 
         count = 0
         for i in range(idx, idx+BLOCKS):
@@ -214,14 +214,14 @@ def countBuckets(vals, L, KNN, knn, xmm, ymm, zmm):
     #print("KNN[bid*knn + tid]:", KNN[bid*knn + tid], "bid*knn + tid:", bid*knn + tid)
 
 
-
+@cuda.jit
 def formatDist(vals, localVals, KNN, L, knn):
-    for bid in range(BLOCKS):
-        for tid in range(knn):
-            k = KNN[bid*knn + tid]
-            localVals[bid*knn + tid] = vals[bid*L + k]
+    bid = cuda.blockIdx.x
+    tid = cuda.threadIdx.x
 
-    return 0
+    k = KNN[bid*knn + tid]
+    localVals[bid*knn + tid] = vals[bid*L + k]
+
 
 
 #----- MLS -----#
