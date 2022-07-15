@@ -35,9 +35,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 100
+n_slice = 125
 #############
-C = 3
+C = 5
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -56,9 +56,9 @@ mask_data   = createMask(moving_data, H, W, C)
 
 # saving images for visualization
 print("saving images...")
-saveImg(fixed_data,  H, W, C, "fixed.jpg" , 1)
-saveImg(moving_data, H, W, C, "moving.jpg", 1)
-saveImg(mask_data,   H, W, C, "mask.jpg"  , 100)
+saveImg(fixed_data,  H, W, C, "fixed_test.jpg" , 1)
+saveImg(moving_data, H, W, C, "moving_test.jpg", 1)
+saveImg(mask_data,   H, W, C, "mask_test.jpg"  , 100)
 
 # check image type
 res = (fixed_img.get_data_dtype() == np.dtype(np.int8))
