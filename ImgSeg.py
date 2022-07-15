@@ -3,7 +3,7 @@ import math
 import random
 import cv2
 
-def convert2Int8(data, H, W, C):
+def convertTo255(data, H, W, C):
     max_tmp = np.amax(data)
     min_tmp = 0
     #print("Max:", max_tmp, "Min:", min_tmp)
@@ -17,7 +17,7 @@ def convert2Int8(data, H, W, C):
 
 def createMask(data, H, W, C):
     # range: 0 ~ 255
-    mask_data = convert2Int8(data, H, W, C)
+    mask_data = convertTo255(data, H, W, C)
 
     # raw segmentation based on intensity
     for k in range(C):

@@ -8,7 +8,7 @@ from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR import computeFuncRes, updateDisplacementField, computeIterDiff
-from ImgSeg import convert2Int8, createMask, saveImg
+from ImgSeg import convertTo255, createMask, saveImg
 
 # block matching settings for tests
 BLOCKS  = 512
@@ -50,8 +50,8 @@ for k in range(C):
             moving_data[k][i][j] = moving_data_raw[i][j][n_slice + k]
 
 # create input image pairs and mask
-fixed_data  = convert2Int8(fixed_data, H, W, C)
-moving_data = convert2Int8(moving_data, H, W, C)
+fixed_data  = convertTo255(fixed_data, H, W, C)
+moving_data = convertTo255(moving_data, H, W, C)
 mask_data   = createMask(moving_data, H, W, C)
 
 # saving images for visualization
