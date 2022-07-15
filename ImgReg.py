@@ -35,9 +35,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 125
+n_slice = 100
 #############
-C = 5
+C = 3
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -176,7 +176,7 @@ for Kid in range(1, K+1):
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
 
             print("iter#:", i, "F(Z):", objVal, \
-                  "f(z):", ccVal, "||AX-Z||:", nrmZ, "||Xk+1-Xk||", nrmABS, \
+                  "f(z):", ccVal, "||AX-Z||:", nrmABS, "||Xk+1-Xk||", nrmZ, \
                   "sw:", SWin)
 
             if nrmZ == 0: break
