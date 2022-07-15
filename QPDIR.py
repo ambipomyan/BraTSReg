@@ -85,7 +85,7 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
         searchMin[BLOCKS, THREADS](fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
         # sort for minimizers
-        sortMin(count, F, I, Z, L, localVals, sx, sy, sz)
+        sortMin[BLOCKS, THREADS](count, F, I, Z, L, localVals, sx, sy, sz)
 
         for i in range(BLOCKS):
             obj += localVals[0][i]
@@ -138,7 +138,7 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
         #print("d0, d1, d2:", d0, d1, d2)
 
         p_count = 0
-        if(tid == 0):
+        if tid == 0:
             for k in range(-rz, rz+1):
                 for i in range(-rx, rx+1):
                     for j in range(-ry, ry+1):
@@ -221,49 +221,54 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
     # no returns 
     #return 0
 
-def sortMin(idx, F, I, Z, L, localVals, sx, sy, sz):
-    for bid in range(BLOCKS):
-        sol = np.zeros(3, dtype=int)
 
+@cuda.jit
+def sortMin(idx, F, I, Z, L, localVals, sx, sy, sz):
+    bid = cuda.blockIdx.x
+    tid = cuda.threadIdx.x
+    pid = bid + idx
+
+    if tid == 0:
         localVals[0][bid] = 0
         localVals[1][bid] = 0
 
-        vals    = np.zeros((2, THREADS))
-        idx_tmp = np.zeros(THREADS, dtype=int)
+    vals    = cuda.shared.array(shape=(2, THREADS), dtype=float32)
+    idx_tmp = cuda.shared.array(shape=(THREADS),    dtype=int32)
 
-        pid = bid + idx
-        if pid < L:
-            for tid in range(THREADS):
-                vals[0][tid] = F[0][bid*THREADS + tid]
-                vals[1][tid] = F[1][bid*THREADS + tid]
-                idx_tmp[tid] = I[bid*THREADS + tid]
+    if pid < L:
+        vals[0][tid] = F[0][bid*THREADS + tid]
+        vals[1][tid] = F[1][bid*THREADS + tid]
+        idx_tmp[tid] = I[bid*THREADS + tid]
+        ID = int(round(THREADS/2))
 
-            ID = int(round(THREADS/2))
-            while ID != 0:
-                for tid in range(THREADS):
-                    if tid < ID:
-                        if vals[0][tid] > vals[0][tid + ID]:
-                           vals[0][tid] = vals[0][tid + ID]
-                           vals[1][tid] = vals[1][tid + ID]
-                           idx_tmp[tid] = idx_tmp[tid + ID]
+        cuda.syncthreads()
 
-                ID = int(round(ID/2))
+        while ID != 0:
+            if tid < ID:
+                if vals[0][tid] > vals[0][tid + ID]:
+                    vals[0][tid] = vals[0][tid + ID]
+                    vals[1][tid] = vals[1][tid + ID]
+                    idx_tmp[tid] = idx_tmp[tid + ID]
 
-            # Update solution of the displacement field
+            cuda.syncthreads()
+
+            ID = int(round(ID/2))
+
+        # Update solution of the displacement field
+        if tid == 0:
             ID = idx_tmp[0]
             localVals[0][bid] = vals[0][0]
             localVals[1][bid] = vals[1][0]
 
             # based on the assumption: sx == sy
-            sol[0] = int( (ID%(2*sx + 1)**2)/(2*sx + 1) - sx )
-            sol[1] = int( (ID%(2*sx + 1)**2)%(2*sx + 1) - sx )
-            sol[2] = int(  ID/(2*sx + 1)**2             - sz )
+            sol0 = int( (ID%(2*sx + 1)**2)/(2*sx + 1) - sx )
+            sol1 = int( (ID%(2*sx + 1)**2)%(2*sx + 1) - sx )
+            sol2 = int(  ID/(2*sx + 1)**2             - sz )
 
-            Z[0][pid] = sol[0]
-            Z[1][pid] = sol[1]
-            Z[2][pid] = sol[2]
+            Z[0][pid] = sol0
+            Z[1][pid] = sol1
+            Z[2][pid] = sol2
 
-    return 0
 
 
 # ----- computeIterDiff ----- #
