@@ -4,6 +4,7 @@ Prepared for MICCAI 2022 challenge
 ## problem located
 - performance and tuning
 - converge toooooo fast
+- take a look at the indices of moving/fixed images in function searchMin()
 
 ## dependency
 numpy  
