@@ -83,10 +83,11 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     while count < L:
         # search for block matching
         searchMin[BLOCKS, THREADS](fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
-        #searchMin_serial(fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+        #searchMin_serial(         fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
         # sort for minimizers
         sortMin[BLOCKS, THREADS](count, F, I, Z, L, localVals, sx, sy, sz)
+        #sortMin_serial(          count, F, I, Z, L, localVals, sx, sy, sz)
 
         for i in range(BLOCKS):
             obj += localVals[0][i]
@@ -413,5 +414,50 @@ def searchMin_serial(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, r
             # end of tid loop
         # end of if pid < L
     # end of bid loop
+
+    return 0
+
+#sortMin serial
+def sortMin_serial(idx, F, I, Z, L, localVals, sx, sy, sz):
+    for bid in range(BLOCKS):
+        sol = np.zeros(3, dtype=int)
+
+        localVals[0][bid] = 0
+        localVals[1][bid] = 0
+
+        vals    = np.zeros((2, THREADS))
+        idx_tmp = np.zeros(THREADS, dtype=int)
+
+        pid = bid + idx
+        if pid < L:
+            for tid in range(THREADS):
+                vals[0][tid] = F[0][bid*THREADS + tid]
+                vals[1][tid] = F[1][bid*THREADS + tid]
+                idx_tmp[tid] = I[bid*THREADS + tid]
+
+            ID = int(round(THREADS/2))
+            while ID != 0:
+                for tid in range(THREADS):
+                    if tid < ID:
+                        if vals[0][tid] > vals[0][tid + ID]:
+                           vals[0][tid] = vals[0][tid + ID]
+                           vals[1][tid] = vals[1][tid + ID]
+                           idx_tmp[tid] = idx_tmp[tid + ID]
+
+                ID = int(round(ID/2))
+
+            # Update solution of the displacement field
+            ID = idx_tmp[0]
+            localVals[0][bid] = vals[0][0]
+            localVals[1][bid] = vals[1][0]
+
+            # based on the assumption: sx == sy
+            sol[0] = int( (ID%(2*sx + 1)**2)/(2*sx + 1) - sx )
+            sol[1] = int( (ID%(2*sx + 1)**2)%(2*sx + 1) - sx )
+            sol[2] = int(  ID/(2*sx + 1)**2             - sz )
+
+            Z[0][pid] = sol[0]
+            Z[1][pid] = sol[1]
+            Z[2][pid] = sol[2]
 
     return 0
