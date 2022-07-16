@@ -3,8 +3,9 @@ Prepared for MICCAI 2022 challenge
 
 ## problem located
 - performance and tuning
-- converge toooooo fast
-- take a look at the indices of moving/fixed images in function searchMin()
+- computation wrong
+  - serial ver. ```iter#: 0 F(Z): 1509.2772346138954 f(z): 1136.7705270648003 ||AX-Z||: 37944.0 ||Xk+1-Xk|| 37944 sw: 15```
+  - GPU ver. ```iter#: 0 F(Z): 1029.2092933924869 f(z): 1024.924848982133 ||AX-Z||: 516.0 ||Xk+1-Xk|| 516 sw: 15```
 
 ## dependency
 numpy  
