@@ -7,8 +7,9 @@ import nibabel as nib
 from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
-from QPDIR import computeFuncRes, updateDisplacementField, computeIterDiff
-from ImgSeg import convertTo255, createMask, saveImg
+from QPDIR                 import computeFuncRes, updateDisplacementField, computeIterDiff
+from ImgSeg                import createMask, saveImg, genPredImg
+from eval                  import computeMAE
 
 # block matching settings for tests
 BLOCKS  = 512
@@ -24,6 +25,7 @@ following = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_0
 # load image
 fixed_img   = nib.load(orignial)
 moving_img  = nib.load(following)
+
 fixed_data_raw  = fixed_img.get_fdata()
 moving_data_raw = moving_img.get_fdata()
 
@@ -35,7 +37,7 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 100
+n_slice = 78
 #############
 C = 3
 ######
@@ -49,16 +51,14 @@ for k in range(C):
             fixed_data[k][i][j]  = fixed_data_raw[i][j][n_slice + k]
             moving_data[k][i][j] = moving_data_raw[i][j][n_slice + k]
 
-# create input image pairs and mask
-fixed_data  = convertTo255(fixed_data, H, W, C)
-moving_data = convertTo255(moving_data, H, W, C)
-mask_data   = createMask(moving_data, H, W, C)
+# create segmented mask image
+mask_data = createMask(moving_data, H, W, C)
 
 # saving images for visualization
 print("saving images...")
 saveImg(fixed_data,  H, W, C, "fixed_test.jpg" , 1)
 saveImg(moving_data, H, W, C, "moving_test.jpg", 1)
-saveImg(mask_data,   H, W, C, "mask_test.jpg"  , 100)
+saveImg(mask_data,   H, W, C, "mask_test.jpg"  , 1)
 
 # ----- set parameters ----- #
 
@@ -175,7 +175,7 @@ for Kid in range(1, K+1):
             # compute diff between iters
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
 
-            print("iter#:", i, "F(Z):", objVal, \
+            print("iter#:", i, "F(Z):", objVal,                             \
                   "f(z):", ccVal, "||AX-Z||:", nrmABS, "||Xk+1-Xk||", nrmZ, \
                   "sw:", SWin)
 
@@ -213,3 +213,14 @@ with open('weights', 'w') as f:
     f.write("%s\n" % dL)
     for item in sol:
         f.write("%s\n" % item)
+
+# ----- check reg result(s) ----- #
+pred_data = genPredImg(d, moving_data, H, W, C)
+saveImg(pred_data, H, W, C, "pred_test.jpg", 1)
+
+# ----- check similarity metrics ----- #
+res_before_mae = computeMAE(moving_data, fixed_data, H, W, C)
+res_after_mae  = computeMAE(pred_data,   fixed_data, H, W, C)
+print("MAE: before:", res_before_mae, "after:", res_after_mae)
+
+# ----- Last Line ----- #
