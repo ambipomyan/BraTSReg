@@ -148,6 +148,11 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
                         t_x = i + src0
                         t_y = j + src1
                         t_z = k + src2
+
+                        if t_x < 0: t_x = 0
+                        if t_y < 0: t_y = 0
+                        if t_z < 0: t_z = 0
+
                         if t_x >= H: t_x = H - 1
                         if t_y >= W: t_y = W - 1
                         if t_z >= C: t_z = C - 1
@@ -181,13 +186,19 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
             for k in range(-rz, rz+1):
                 for i in range(-rx, rx+1):
                     for j in range(-ry, ry+1):
-                        p = vals[p_count]
                         t_x = i + ti
                         t_y = j + tj
                         t_z = k + tk
+
+                        if t_x < 0: t_x = 0
+                        if t_y < 0: t_y = 0
+                        if t_z < 0: t_z = 0
+
                         if t_x >= H: t_x = H - 1
                         if t_y >= W: t_y = W - 1
                         if t_z >= C: t_z = C - 1
+
+                        p = vals[p_count]
                         q = fixed[t_z][t_x][t_y]
 
                         x  += p

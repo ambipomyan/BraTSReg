@@ -48,9 +48,9 @@ def throwDarts(mask, S, dpx, dpy, dpz, H, W, C, Kid):
 def getMaskVoxels(mask, S, H, W, C, Kid):
     count = 0
     N = 0
-    for i in range(H):
-        for j in range(W):
-            for k in range(C):
+    for k in range(C):
+        for i in range(H):
+            for j in range(W):
                 v = mask[count]
                 if v == Kid:
                     S[0][N] = i
@@ -63,7 +63,7 @@ def getMaskVoxels(mask, S, H, W, C, Kid):
 
 def checkHit(mask, dpx, dpy, dpz, i, j, k, H, W, C):
     if mask[H*W*k + i*W + j] == 0: return 0
-    
+
     # bounds for indeces
     i1 = i - dpx
     j1 = j - dpy
@@ -75,13 +75,13 @@ def checkHit(mask, dpx, dpy, dpz, i, j, k, H, W, C):
     i2 = i + dpx
     j2 = j + dpy
     k2 = k + dpz
-    if i2 > H: i2 = H
-    if j2 > W: j2 = W
-    if k2 > C: k2 = C
+    if i2 >= H: i2 = H - 1
+    if j2 >= W: j2 = W - 1
+    if k2 >= C: k2 = C - 1
 
-    for I in range(i1, i2):
-        for J in range(j1, j2):
-            for K in range(k1, k2):
+    for K in range(k1, k2+1):
+        for I in range(i1, i2+1):
+            for J in range(j1, j2+1):
                 mask[H*W*K + I*W + J] = 0
 
     return 1
@@ -124,7 +124,7 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
                 for k in range(knn):
                     KNN[i*knn + k] = localKNN[count]
                     count += 1
-    
+
     return 0
 
 # CUDA kernels

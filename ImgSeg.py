@@ -50,15 +50,26 @@ def saveImg(img_data, H, W, C, file_name, scale):
 
 def genPredImg(d, moving_data, H, W, C):
     pred_data = np.zeros((C, H, W), dtype=int)
-    for i in range(H):
-        for j in range(W):
-            for k in range(C):
+    for k in range(C):
+        for i in range(H):
+            for j in range(W):
                 ID = k*H*W + i*W + j
+                t_x = i + d[0][ID]
+                t_y = j + d[1][ID]
+                t_z = k + d[2][ID]
+
+                if t_x < 0: t_x = 0
+                if t_y < 0: t_y = 0
+                if t_z < 0: t_z = 0
+
+                if t_x >= H: t_x = H - 1
+                if t_y >= W: t_y = W - 1
+                if t_z >= C: t_z = C - 1
 
                 #print("i, j, k, ID, d[0], d[1], d[2]:", i,        j,        k,       \
                                                         #ID,                          \
                                                         #d[0][ID], d[1][ID], d[2][ID])
 
-                pred_data[k][i][j] = moving_data[k + d[2][ID]][i + d[0][ID]][j + d[1][ID]]
+                pred_data[k][i][j] = moving_data[t_z][t_x][t_y]
 
     return pred_data
