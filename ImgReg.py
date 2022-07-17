@@ -37,9 +37,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 78
+n_slice = 0
 #############
-C = 3
+C = C
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -70,10 +70,10 @@ print("block radius(HWC):", rx, ry, rz)
 
 # search window size (and penalty parameter mu)
 # 15x15x1 window, sx == sy
-sx = 15
-sy = 15 
-sz = 1
-sw = 15
+sx = 10
+sy = 10
+sz = 10
+sw = sx
 #mu = sw**2 / 2
 print("init search window radius(HWC):", sx, sy, sz)
 
