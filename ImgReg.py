@@ -209,13 +209,16 @@ for i in range(dL):
     sol[i + 4*dL] = d[1][i]
     sol[i + 5*dL] = d[2][i]
 
+    #print("i, d[0], d[1], d[2], d_ws[0], d_ws[1], d_ws[2], j, fixed, moving", i, d[0][i], d[1][i], d[2][i], d_ws[0][i], d_ws[1][i], d_ws[2][i], d_ws[2][i]*H*W + d_ws[0][i]*W + d_ws[1][i], \
+                                                                              #fixed_data[d_ws[2][i]][d_ws[0][i]][d_ws[1][i]], moving_data[d_ws[2][i]][d_ws[0][i]][d_ws[1][i]])
+
 with open('weights', 'w') as f:
     f.write("%s\n" % dL)
     for item in sol:
         f.write("%s\n" % item)
 
 # ----- check reg result(s) ----- #
-pred_data = genPredImg(d, moving_data, H, W, C)
+pred_data = genPredImg(d, d_ws, L, moving_data, H, W, C)
 saveImg(pred_data, H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
