@@ -13,7 +13,7 @@ from eval                  import computeMAE
 
 # block matching settings for tests
 BLOCKS  = 512
-THREADS = 256
+THREADS = 512
 BUCKETS = 512
 
 # ----- load data ----- #
@@ -37,9 +37,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 78
+n_slice = 0
 #############
-C = 3
+C = C
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -65,11 +65,11 @@ saveImg(mask_data,   H, W, C, "mask_test.jpg"  , 1)
 # init block size
 rx = 3
 ry = 3
-rz = 1
+rz = 3
 print("block radius(HWC):", rx, ry, rz)
 
 # search window size (and penalty parameter mu)
-# 15x15x1 window, sx == sy
+# cubic window, sx == sy == sz
 sx = 10
 sy = 10
 sz = 10
@@ -92,9 +92,9 @@ maxL = 500000
 knn  = 50
 
 # point cloud spacing for dart throw, needs to be tuned
-dpx = 3 # larger numbers for quicker tests
-dpy = 3
-dpz = 1
+dpx = rx # larger numbers for quicker tests
+dpy = ry
+dpz = rz
 
 # ------ set memory ------ #
 
@@ -218,8 +218,8 @@ with open('weights', 'w') as f:
         f.write("%s\n" % item)
 
 # ----- check reg result(s) ----- #
-pred_data, pred_darts = genPredImg(d, d_ws, L, moving_data, H, W, C)
-saveImg(pred_darts, H, W, C, "darts_test.jpg", 5)
+pred_data, pred_darts = genPredImg(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz)
+saveImg(pred_darts, H, W, C, "darts_test.jpg", 1)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #

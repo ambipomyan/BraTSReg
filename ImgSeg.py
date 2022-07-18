@@ -48,32 +48,45 @@ def saveImg(img_data, H, W, C, file_name, scale):
 
     return 0
 
-def genPredImg(d, d_ws, L, moving_data, H, W, C):
+def genPredImg(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz):
     pred_darts = np.zeros((C, H, W), dtype=int)
     pred_data = np.zeros((C, H, W), dtype=int)
 
     for l in range(L):
-        # get src index
-        k = d_ws[2][l]
-        i = d_ws[0][l]
-        j = d_ws[1][l]
+        i_l = d_ws[0][l]
+        j_l = d_ws[1][l]
+        k_l = d_ws[2][l]
 
-        # get displacement field index
-        #ID = d_ws[2][l]*H*W + d_ws[0][l]*W + d_ws[0][l]
-        t_x = i + d[0][l]
-        t_y = j + d[1][l]
-        t_z = k + d[2][l]
+        t_i_l = i_l + d[0][l]
+        t_j_l = j_l + d[1][l]
+        t_k_l = k_l + d[2][l]
 
-        if t_x < 0: t_x = 0
-        if t_y < 0: t_y = 0
-        if t_z < 0: t_z = 0
+        for c in range(-dpz, dpz+1):
+            for h in range(-dpx, dpx+1):
+                for w in range(-dpy, dpy+1):
+                    k = k_l + c
+                    i = i_l + h
+                    j = j_l + w
 
-        if t_x >= H: t_x = H - 1
-        if t_y >= W: t_y = W - 1
-        if t_z >= C: t_z = C - 1
+                    t_k = t_k_l + c
+                    t_i = t_i_l + h
+                    t_j = t_j_l + w
 
-        #print("i, j, k, ID, d[0], d[1], d[2]:", i, j, k, ID, d[0][ID], d[1][ID], d[2][ID])
-        pred_darts[k][i][j] = moving_data[t_z][t_x][t_y]
+                    if k < 0: k = 0
+                    if i < 0: i = 0
+                    if j < 0: j = 0
+                    if k >= C: k = C - 1
+                    if i >= H: i = H - 1
+                    if j >= W: j = W - 1
+
+                    if t_k < 0: t_k = 0
+                    if t_i < 0: t_i = 0
+                    if t_j < 0: t_j = 0
+                    if t_k >= C: t_k = C - 1
+                    if t_i >= H: t_i = H - 1
+                    if t_j >= W: t_j = W - 1
+
+                    pred_darts[t_k][t_i][t_j] = moving_data[k][i][j]
 
     for k in range(C):
         for i in range(H):
