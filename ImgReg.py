@@ -218,8 +218,9 @@ with open('weights', 'w') as f:
         f.write("%s\n" % item)
 
 # ----- check reg result(s) ----- #
-pred_data = genPredImg(d, d_ws, L, moving_data, H, W, C)
-saveImg(pred_data, H, W, C, "pred_test.jpg", 1)
+pred_data, pred_darts = genPredImg(d, d_ws, L, moving_data, H, W, C)
+saveImg(pred_darts, H, W, C, "darts_test.jpg", 5)
+saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
 res_before_mae = computeMAE(moving_data, fixed_data, H, W, C)
