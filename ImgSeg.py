@@ -49,7 +49,9 @@ def saveImg(img_data, H, W, C, file_name, scale):
     return 0
 
 def genPredImg(d, d_ws, L, moving_data, H, W, C):
+    pred_darts = np.zeros((C, H, W), dtype=int)
     pred_data = np.zeros((C, H, W), dtype=int)
+
     for l in range(L):
         # get src index
         k = d_ws[2][l]
@@ -71,7 +73,14 @@ def genPredImg(d, d_ws, L, moving_data, H, W, C):
         if t_z >= C: t_z = C - 1
 
         #print("i, j, k, ID, d[0], d[1], d[2]:", i, j, k, ID, d[0][ID], d[1][ID], d[2][ID])
+        pred_darts[k][i][j] = moving_data[t_z][t_x][t_y]
 
-        pred_data[k][i][j] = moving_data[t_z][t_x][t_y]
+    for k in range(C):
+        for i in range(H):
+            for j in range(W):
+                if pred_darts[k][i][j] != 0:
+                    pred_data[k][i][j] = pred_darts[k][i][j]
+                else:
+                    pred_data[k][i][j] = moving_data[k][i][j]
 
-    return pred_data
+    return pred_data, pred_darts
