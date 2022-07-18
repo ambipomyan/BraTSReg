@@ -14,7 +14,7 @@ CUDA 11.4
 Numba 0.50.1( llvmlite will be included when installing Numba )   
 colorama 0.4.5( >=0.3.9 is fine )  
 
-## sample run
+## sample run: case01, t1
 ```
 input dims(HWC): 240 240 155
 sliced input dims(HWC): 240 240 155
@@ -55,10 +55,16 @@ iter#: 3 F(Z): 3343.0721992161125 f(z): 2444.108734888956 ||AX-Z||: 5371.8219680
 iter#: 0 F(Z): 3342.6301253437996 f(z): 2444.108734888956 ||AX-Z||: 2686.168951373385 ||Xk+1-Xk|| 0 sw: 1
 MAE: before: 13.242365815412187 after: 10.461548275089605
 ```
-## visualization(slice#100)
+## visualization(image slice in the middle, 240 x 240 x 1, mm)
+#### inputs:
 fixed image:  
 ![fixed image](https://github.com/ambipomyan/BraTSReg/blob/main/fixed.jpg)  
 moving image:  
 ![moving image](https://github.com/ambipomyan/BraTSReg/blob/main/moving.jpg)  
+#### itermediate results:
 mask image:  
 ![mask image](https://github.com/ambipomyan/BraTSReg/blob/main/mask.jpg)  
+darts image:  
+![darts image](https://github.com/ambipomyan/BraTSReg/blob/main/darts.jpg)  
+#### result:
+![pred image](https://github.com/ambipomyan/BraTSReg/blob/main/pred.jpg)  
