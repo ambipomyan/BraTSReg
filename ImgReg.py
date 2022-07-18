@@ -37,9 +37,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 0
+n_slice = 78
 #############
-C = C
+C = 3
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
