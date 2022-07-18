@@ -3,7 +3,7 @@ import math
 
 # block matching settings for tests
 BLOCKS  = 512
-THREADS = 256
+THREADS = 512
 BUCKETS = 512
 
 from utils import randomPickInt, initUpperTriangleMatrix, initIdMatrix, CholeskyFactorization, compute2Norm

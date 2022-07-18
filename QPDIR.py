@@ -6,11 +6,11 @@ from utils import multMat, multVec, axpby
 
 # block matching settings for tests
 BLOCKS  = 512
-THREADS = 256
+THREADS = 512
 BUCKETS = 512
 
-# rx = ry = 3, rz = 1; 147 = 7 x 7 x 3
-MEMSIZE = 147
+# rx = ry = 3, rz = 1; 343 = 7 x 7 x 7
+MEMSIZE = 343
 
 # GPU parallelism
 from numba import cuda, int32, float32
