@@ -39,7 +39,9 @@ def computeRobustness(moving, fixed, pred, file_name):
         i = arr[0][c]
         j = arr[1][c]
         #print("indices:", i, j, k)
-        k = 1 ##### for test #####
+        #
+        #k = 1
+        #
         tmp = abs(moving[k][i][j] - fixed[k][i][j]) - abs(pred[k][i][j] - fixed[k][i][j])
         if tmp < 0: count = count + 1
 

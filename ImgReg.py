@@ -17,10 +17,13 @@ THREADS = 512
 BUCKETS = 512
 
 # ----- load data ----- #
+original_file   = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_00_0000_t1.nii.gz"
+following_file  = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_t1.nii.gz"
+landmark_file   = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_landmarks.csv"
 
 # find data path for original scan and fllowing scan
-orignial  = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_00_0000_t1.nii.gz')
-following = os.path.join(data_path, '/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_t1.nii.gz')
+orignial  = os.path.join(data_path, original_file)
+following = os.path.join(data_path, following_file)
 
 # load image
 fixed_img   = nib.load(orignial)
@@ -35,12 +38,13 @@ W = fixed_data_raw.shape[1]
 C = fixed_data_raw.shape[2]
 print("input dims(HWC):", H, W, C)
 
+n_slice = 0
+
 # get image slices
-#############
-n_slice = 75
-#############
-C = 10
-######
+#
+#n_slice = 74
+#C = 10
+#
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
 print("sliced input dims(HWC):", H, W, C)
@@ -230,7 +234,7 @@ res_after_mae  = computeMAE(pred_data,   fixed_data, H, W, C)
 print("MAE: before:", res_before_mae, "after:", res_after_mae)
 
 # -- Robustness --#
-r, n = computeRobustness(moving_data, fixed_data, pred_data, "BraTSReg_001_01_0106_landmarks.csv")
+r, n = computeRobustness(moving_data, fixed_data, pred_data, landmark_file)
 print("Robustness:", r, "( total:", n, ")")
 
 # ----- Last Line ----- #
