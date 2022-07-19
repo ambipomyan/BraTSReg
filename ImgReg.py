@@ -42,8 +42,8 @@ n_slice = 0
 
 # get image slices
 #
-#n_slice = 74
-#C = 10
+n_slice = 74
+C = 10
 #
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -227,6 +227,7 @@ saveImg(pred_darts, H, W, C, "darts_test.jpg", 1)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
+print("===========")
 print("evaluation:")
 # -- MAE -- #
 res_before_mae = computeMAE(moving_data, fixed_data, H, W, C)
@@ -235,6 +236,10 @@ print("MAE: before:", res_before_mae, "after:", res_after_mae)
 
 # -- Robustness --#
 r, n = computeRobustness(moving_data, fixed_data, pred_data, landmark_file)
-print("Robustness:", r, "( total:", n, ")")
+print("Robustness:", r, "/", n)
 
+# -- Jacobian Determinat -- #
+n_negative, JD, jd_max = computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, "jd_test.jpg")
+print("Jacobian Determinat: #negative elements: ", n_negative, "/", H*W*C)
+print("===========")
 # ----- Last Line ----- #

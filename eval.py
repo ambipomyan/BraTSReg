@@ -3,6 +3,8 @@ import math
 import random
 import csv
 
+from ImgSeg import saveImg
+
 def computeMAE(img1, img2, H, W, C):
     res = 0
     for k in range(C):
@@ -40,16 +42,89 @@ def computeRobustness(moving, fixed, pred, file_name):
         j = arr[1][c]
         #print("indices:", i, j, k)
         #
-        #k = 1
+        k = 1
         #
         tmp = abs(moving[k][i][j] - fixed[k][i][j]) - abs(pred[k][i][j] - fixed[k][i][j])
         if tmp < 0: count = count + 1
 
-    r = count / n
+    r = count
 
     return r, n
 
 
-def computeJacobiDeterminant(d, d_ws):
+def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
+    n = 0
+    jd = np.zeros((C, H, W))
+    tmp = np.zeros((3, H*W*C), dtype=int)
 
-    return res
+    # - recover displacement field - #
+    for l in range(L):
+        idx_z = d_ws[2][l]
+        idx_x = d_ws[0][l]
+        idx_y = d_ws[1][l]
+
+        for k in range(-dpz, dpz+1):
+            for i in range(-dpx, dpx+1):
+                for j in range(-dpy, dpy+1):
+                    c = idx_z + k
+                    h = idx_x + i
+                    w = idx_y + j
+
+                    if c >= C: c = C - 1
+                    if h >= H: h = H - 1
+                    if w >= W: w = W - 1
+
+                    if c < 0: c = 0
+                    if h < 0: h = 0
+                    if w < 0: w = 0
+
+                    ID = c*H*W + W*h + w
+
+                    tmp[2][ID] = d[2][l]
+                    tmp[0][ID] = d[0][l]
+                    tmp[1][ID] = d[1][l]
+
+    # - compute JD - #
+    for c in range(C):
+        for h in range(H):
+            for w in range(W):
+                idx = c*H*W + W*h + w
+
+                # compute JD elements
+
+                #          | a11 a12 a13 |
+                # det(J) = | a21 a22 a23 |
+                #          | a31 a32 a33 |
+
+                # a11 = d(tx)/d(x)
+                # a13 = d(tx)/d(z)
+                # a33 = d(tz)/d(z)
+
+                a11 = tmp[0][idx] + 1
+                a12 = 0
+                a13 = 0
+                a21 = 0
+                a22 = tmp[1][idx] + 1
+                a23 = 0
+                a31 = 0
+                a32 = 0
+                a33 = tmp[2][idx] + 1
+
+                A = a11*a22*a33
+                B = a12*a23*a31
+                C = a13*a21*a32
+                D = -1*a11*a23*a32
+                E = -1*a12*a21*a33
+                F = -1*a13*a22*a31
+
+                jd[c][h][w] = A + B + C + D + E + F
+                #print(jd[c][h][w])
+
+                # collect #negative elements
+                if jd[c][h][w] < 0: n += 1
+
+    jd_max = np.amax(jd)
+
+    saveImg(jd, H, W, C, file_name, 1)
+
+    return n, jd, jd_max
