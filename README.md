@@ -57,7 +57,7 @@ iter#: 3 F(Z): 3367.278685728088 f(z): 2458.1445118216798 ||AX-Z||: 5420.0228623
 iter#: 0 F(Z): 3366.7226494345814 f(z): 2458.1445118216798 ||AX-Z||: 2710.0390606981973 ||Xk+1-Xk|| 0 sw: 1
 evaluation:
 MAE: before: 13.242365815412187 after: 10.484244735663083
-Robustness: 0.16666666666666666
+Robustness: 0.16666666666666666 ( total: 6 )
 ```
 ## visualization(image slice in the middle, 240 x 240 x 1, mm)
 #### inputs:
