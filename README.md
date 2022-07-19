@@ -8,6 +8,7 @@ Prepared for MICCAI 2022 challenge
 numpy  
 nibabel  
 cv2  
+csv  
 
 ## parallelism related
 CUDA 11.4  
