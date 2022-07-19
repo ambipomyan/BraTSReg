@@ -230,7 +230,7 @@ res_after_mae  = computeMAE(pred_data,   fixed_data, H, W, C)
 print("MAE: before:", res_before_mae, "after:", res_after_mae)
 
 # -- Robustness --#
-r = computeRobustness(moving_data, fixed_data, pred_data, "BraTSReg_001_01_0106_landmarks.csv")
-print("Robustness:", r)
+r, n = computeRobustness(moving_data, fixed_data, pred_data, "BraTSReg_001_01_0106_landmarks.csv")
+print("Robustness:", r, "( total:", n, ")")
 
 # ----- Last Line ----- #

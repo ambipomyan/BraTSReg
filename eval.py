@@ -45,7 +45,7 @@ def computeRobustness(moving, fixed, pred, file_name):
 
     r = count / n
 
-    return r
+    return r, n
 
 
 def computeJacobiDeterminant(d, d_ws):
