@@ -9,7 +9,7 @@ from nibabel.testing import data_path
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR                 import computeFuncRes, updateDisplacementField, computeIterDiff
 from ImgSeg                import createMask, saveImg, genPredImg
-from eval                  import computeMAE
+from eval                  import computeMAE, computeRobustness, computeJacobiDeterminant
 
 # block matching settings for tests
 BLOCKS  = 512
@@ -37,9 +37,9 @@ print("input dims(HWC):", H, W, C)
 
 # get image slices
 #############
-n_slice = 0
+n_slice = 75
 #############
-C = C
+C = 10
 ######
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -223,8 +223,14 @@ saveImg(pred_darts, H, W, C, "darts_test.jpg", 1)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
+print("evaluation:")
+# -- MAE -- #
 res_before_mae = computeMAE(moving_data, fixed_data, H, W, C)
 res_after_mae  = computeMAE(pred_data,   fixed_data, H, W, C)
 print("MAE: before:", res_before_mae, "after:", res_after_mae)
+
+# -- Robustness --#
+r = computeRobustness(moving_data, fixed_data, pred_data, "BraTSReg_001_01_0106_landmarks.csv")
+print("Robustness:", r)
 
 # ----- Last Line ----- #
