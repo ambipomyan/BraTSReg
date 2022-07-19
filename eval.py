@@ -42,7 +42,7 @@ def computeRobustness(moving, fixed, pred, file_name):
         j = arr[1][c]
         #print("indices:", i, j, k)
         #
-        k = 1
+        #k = 1
         #
         tmp = abs(moving[k][i][j] - fixed[k][i][j]) - abs(pred[k][i][j] - fixed[k][i][j])
         if tmp < 0: count = count + 1
@@ -123,8 +123,8 @@ def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
                 # collect #negative elements
                 if jd[c][h][w] < 0: n += 1
 
-    jd_max = np.amax(jd)
+    # - get statistics - #
+    jd_max  = np.amax(jd)
+    jd_mean = np.mean(jd)
 
-    saveImg(jd, H, W, C, file_name, 1)
-
-    return n, jd, jd_max
+    return n, jd, jd_max, jd_mean

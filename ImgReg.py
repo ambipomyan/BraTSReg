@@ -42,8 +42,8 @@ n_slice = 0
 
 # get image slices
 #
-n_slice = 74
-C = 10
+#n_slice = 74
+#C = 10
 #
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
@@ -223,7 +223,6 @@ with open('weights', 'w') as f:
 
 # ----- check reg result(s) ----- #
 pred_data, pred_darts = genPredImg(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz)
-saveImg(pred_darts, H, W, C, "darts_test.jpg", 1)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
@@ -239,7 +238,7 @@ r, n = computeRobustness(moving_data, fixed_data, pred_data, landmark_file)
 print("Robustness:", r, "/", n)
 
 # -- Jacobian Determinat -- #
-n_negative, JD, jd_max = computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, "jd_test.jpg")
-print("Jacobian Determinat: #negative elements: ", n_negative, "/", H*W*C)
+n_negative, JD, jd_max, jd_mean = computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, "jd_test.jpg")
+print("Jacobian Determinat: #negative elements: ", n_negative, "/", H*W*C, "Max and Mean vals:", jd_max, jd_mean)
 print("===========")
 # ----- Last Line ----- #
