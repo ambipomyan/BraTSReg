@@ -11,6 +11,9 @@ from QPDIR                 import computeFuncRes, updateDisplacementField, compu
 from ImgSeg                import createMask, saveImg, genFullPred, genPredImg
 from eval                  import computeMAE, computeRobustness, computeJacobiDeterminant
 
+# GPU parallelism
+from numba import cuda, int32, float32
+
 # block matching settings for tests
 BLOCKS  = 512
 THREADS = 512
@@ -57,6 +60,10 @@ for k in range(C):
 
 # create segmented mask image
 mask_data = createMask(moving_data, H, W, C)
+
+# copy data to device
+fixed_dev  = cuda.to_device(fixed_data)
+moving_dev = cuda.to_device(moving_data)
 
 # saving images for visualization
 print("saving images...")
@@ -129,8 +136,10 @@ Ap = np.zeros(maxL)
 Y = np.zeros((3, maxL))
 
 # obj function res
-F = np.zeros((2, BLOCKS*THREADS))
-I = np.zeros(BLOCKS*THREADS, dtype=int)
+#F = np.zeros((2, BLOCKS*THREADS))
+#I = np.zeros(BLOCKS*THREADS, dtype=int)
+F_dev = cuda.device_array((2, BLOCKS*THREADS))
+I_dev = cuda.device_array(BLOCKS*THREADS, dtype=int)
 
 # localSUM
 localVals = np.zeros((2, BLOCKS))
@@ -174,7 +183,7 @@ for Kid in range(1, K+1):
             computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Zold, Y, L, alpha, 2*mu)
 
             # update displacement field
-            objVal, ccVal = updateDisplacementField(fixed_data, moving_data, F, I, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+            objVal, ccVal = updateDisplacementField(fixed_dev, moving_dev, F_dev, I_dev, z_ws, Z, Y, L, localVals, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
             # compute diff between iters
             nrmZ, nrmABS = computeIterDiff(Z, Zold, Y, L)
