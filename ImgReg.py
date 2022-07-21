@@ -8,7 +8,7 @@ from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR                 import computeFuncRes, updateDisplacementField, computeIterDiff
-from ImgSeg                import createMask, saveImg, genPredImg
+from ImgSeg                import createMask, saveImg, genFullPred, genPredImg
 from eval                  import computeMAE, computeRobustness, computeJacobiDeterminant
 
 # block matching settings for tests
@@ -17,9 +17,9 @@ THREADS = 512
 BUCKETS = 512
 
 # ----- load data ----- #
-original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_00_0000_t1.nii.gz"
-following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_01_0154_t1.nii.gz"
-landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_01_0154_landmarks.csv"
+original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_00_0000_t1.nii.gz"
+following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_01_0399_t1.nii.gz"
+landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_01_0399_landmarks.csv"
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, original_file)
@@ -222,7 +222,8 @@ with open('weights', 'w') as f:
         f.write("%s\n" % item)
 
 # ----- check reg result(s) ----- #
-pred_data, pred_darts = genPredImg(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz)
+pred_darts = genFullPred(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz)
+pred_data  = genPredImg(pred_darts, moving_data, H, W, C)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
 # ----- check similarity metrics ----- #
