@@ -230,7 +230,6 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
     #print("mls")
     nrm  = np.zeros(knn) # 2-norm
     ws   = np.zeros(4)
-    ATA  = np.zeros(10)  # 4x4 matrix (upper part)
     xTAI = np.zeros(4)   # 4x1 array
 
     for count in range(L):
@@ -245,9 +244,10 @@ def mls(S, L, KNN, A, knn, xmm, ymm,zmm):
         #if count == 0: print("h:", h)
 
         for k in range(knn):
-            nrm[k] = math.exp(-nrm[k]*1/h2)
+            nrm[k] = math.exp(-nrm[k]*9/(2*h2))
 
         # A'A
+        ATA = np.zeros(10)  # 4x4 matrix (upper part)
         for k in range(knn):
             idx = KNN[count*knn + k]
             ws[0] = nrm[k]*(S[0][idx] - S[0][count]) # x

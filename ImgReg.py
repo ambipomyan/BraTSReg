@@ -164,7 +164,7 @@ for Kid in range(1, K+1):
 
     #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
 
-    maxIter = 5
+    maxIter = 50
     SWin = sw
     while SWin != 0:
         mu = 1/SWin # use mu to replace 1/(2*mu**2)

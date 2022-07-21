@@ -4,7 +4,7 @@ import random
 
 # block matching settings for tests
 BLOCKS  = 512
-THREADS = 256
+THREADS = 512
 BUCKETS = 512
 
 def randomPickInt(N):

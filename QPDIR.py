@@ -30,7 +30,7 @@ def computeFuncRes(A, KNN, knn, b, x, r, p, Ap, Z, Y, L, alpha, mu):
 def cg(A, KNN, knn, b, x, r, p, Ap, L, alpha, mu):
     rTr = initCG(x, r, b, p, L)
     #print("rTr:", rTr)
-    tol = 0.005
+    tol = 0.001
     if rTr < tol: return 0
 
     max_iter = L
@@ -214,8 +214,8 @@ def searchMin(fixed, moving, idx, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, 
                 #print("NaN or inf encountered: x2:", x2, "x:", x, "y2:", y2, "y:", y, "RN:", RN)
                 val1 = 1
             else:
-                tmp = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
-                val1 = 1 - tmp**2
+                val1 = (xy - x*y/RN) / ( math.sqrt(x2 - x**2/RN)*math.sqrt(y2 - y**2/RN) )
+                val1 = 1 - val1**2
 
             val0 = val1 + mu*nrm
 

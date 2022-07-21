@@ -100,10 +100,10 @@ def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
                 # a13 = d(tx)/d(z)
                 # a33 = d(tz)/d(z)
 
-                A = -c*h*w
-                F = (c + tmp[2][idx])*(h + tmp[0][idx])*(w + tmp[1][idx])
+                A = 0
+                F = tmp[2][idx]*tmp[0][idx]*tmp[1][idx]
 
-                jd[c][h][w] = A + F
+                jd[c][h][w] = -1*A + F
                 #print(jd[c][h][w])
 
                 # collect #negative elements
