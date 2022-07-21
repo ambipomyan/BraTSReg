@@ -115,7 +115,11 @@ def kNN(src, L, S, N, KNN, knn, xmm, ymm, zmm):
     # compute knn
     for idx in range(0, N, BLOCKS):
         computeDist[BLOCKS, THREADS](vals, idx, src, L, S, N, xmm, ymm, zmm)
+        cuda.synchronize()
+
         countBuckets[BLOCKS, BUCKETS](vals, L, localKNN, knn, xmm, ymm, zmm)
+        cuda.synchronize()
+
         #formatDist[BLOCKS, knn](vals, localVals, localKNN, L, knn) # not necessarily needed
 
         count = 0

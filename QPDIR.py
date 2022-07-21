@@ -83,10 +83,12 @@ def updateDisplacementField(fixed, moving, F, I, S, Z, Y, L, localVals, mu, sx, 
     while count < L:
         # search for block matching
         searchMin[BLOCKS, THREADS](fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
+        cuda.synchronize()
         #searchMin_serial(          fixed, moving, count, F, I, S, Z, Y, L, mu, sx, sy, sz, rx, ry, rz, H, W, C)
 
         # sort for minimizers
         sortMin[BLOCKS, THREADS](count, F, I, Z, L, localVals, sx, sy, sz)
+        cuda.synchronize()
         #sortMin_serial(          count, F, I, Z, L, localVals, sx, sy, sz)
 
         for i in range(BLOCKS):
