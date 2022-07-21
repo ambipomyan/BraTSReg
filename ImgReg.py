@@ -17,9 +17,9 @@ THREADS = 512
 BUCKETS = 512
 
 # ----- load data ----- #
-original_file   = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_00_0000_t1.nii.gz"
-following_file  = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_t1.nii.gz"
-landmark_file   = "/home/kyan2/Desktop/BraTSReg/BraTSReg_001_01_0106_landmarks.csv"
+original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_00_0000_t1.nii.gz"
+following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_01_0154_t1.nii.gz"
+landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_142/BraTSReg_142_01_0154_landmarks.csv"
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, original_file)
@@ -42,8 +42,8 @@ n_slice = 0
 
 # get image slices
 #
-#n_slice = 74
-#C = 10
+n_slice = 74
+C = 10
 #
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)

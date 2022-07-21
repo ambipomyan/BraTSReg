@@ -42,7 +42,7 @@ def computeRobustness(moving, fixed, pred, file_name):
         j = arr[1][c]
         #print("indices:", i, j, k)
         #
-        #k = 1
+        k = 1
         #
         tmp = abs(moving[k][i][j] - fixed[k][i][j]) - abs(pred[k][i][j] - fixed[k][i][j])
         if tmp < 0: count = count + 1
@@ -100,24 +100,10 @@ def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
                 # a13 = d(tx)/d(z)
                 # a33 = d(tz)/d(z)
 
-                a11 = tmp[0][idx] + 1
-                a12 = 0
-                a13 = 0
-                a21 = 0
-                a22 = tmp[1][idx] + 1
-                a23 = 0
-                a31 = 0
-                a32 = 0
-                a33 = tmp[2][idx] + 1
+                A = -c*h*w
+                F = (c + tmp[2][idx])*(h + tmp[0][idx])*(w + tmp[1][idx])
 
-                A = a11*a22*a33
-                B = a12*a23*a31
-                C = a13*a21*a32
-                D = -1*a11*a23*a32
-                E = -1*a12*a21*a33
-                F = -1*a13*a22*a31
-
-                jd[c][h][w] = A + B + C + D + E + F
+                jd[c][h][w] = A + F
                 #print(jd[c][h][w])
 
                 # collect #negative elements
