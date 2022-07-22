@@ -5,17 +5,18 @@ import csv
 
 from ImgSeg import saveImg
 
-def computeMAE(img1, img2, H, W, C):
+def computeMAE(img1, img2, d, d_ws, L, H, W, C):
     res = 0
-    for k in range(C):
-        for i in range(H):
-            for j in range(W):
-                res += abs( img2[k][i][j] - img1[k][i][j] )
+    for l in range(L):
+        k = d_ws[2][l]
+        i = d_ws[0][l]
+        j = d_ws[1][l]
 
-    res = res / (H*W*C)
+        res += abs( img2[k][i][j] - img1[k][i][j] )
+
+    res = res / L
 
     return res
-
 
 def read_landmark_info(file_name):
     res = np.zeros((3, 50), dtype=int)
@@ -50,7 +51,6 @@ def computeRobustness(moving, fixed, pred, file_name):
     r = count
 
     return r, n
-
 
 def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
     n = 0

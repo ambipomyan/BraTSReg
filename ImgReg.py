@@ -8,7 +8,7 @@ from nibabel.testing import data_path
 
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR                 import computeFuncRes, updateDisplacementField, computeIterDiff
-from ImgSeg                import createMask, saveImg, genFullPred, genPredImg
+from ImgSeg                import createMask, saveImg, getDisplacementField, genPred
 from eval                  import computeMAE, computeRobustness, computeJacobiDeterminant
 
 # GPU parallelism
@@ -231,24 +231,8 @@ with open('weights', 'w') as f:
         f.write("%s\n" % item)
 
 # ----- check reg result(s) ----- #
-pred_darts = genFullPred(d, d_ws, L, moving_data, H, W, C, dpx, dpy, dpz)
-pred_data  = genPredImg(pred_darts, moving_data, H, W, C)
+D = getDisplacementField(d, d_ws, L, H, W, C, dpx, dpy, dpz)
+pred_data = genPred(D, moving_data, H, W, C)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
 
-# ----- check similarity metrics ----- #
-print("===========")
-print("evaluation:")
-# -- MAE -- #
-res_before_mae = computeMAE(moving_data, fixed_data, H, W, C)
-res_after_mae  = computeMAE(pred_data,   fixed_data, H, W, C)
-print("MAE: before:", res_before_mae, "after:", res_after_mae)
-
-# -- Robustness --#
-r, n = computeRobustness(moving_data, fixed_data, pred_data, landmark_file)
-print("Robustness:", r, "/", n)
-
-# -- Jacobian Determinat -- #
-n_negative, JD, jd_max, jd_mean = computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, "jd_test.jpg")
-print("Jacobian Determinat: #negative elements: ", n_negative, "/", H*W*C, "Max and Mean vals:", jd_max, jd_mean)
-print("===========")
 # ----- Last Line ----- #
