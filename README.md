@@ -2,7 +2,6 @@
 Prepared for MICCAI 2022 challenge
 
 ## problem located
-- Check dev_S data copy!!!!!!!!!!!
 - performance and tuning
 
 ## dependency
