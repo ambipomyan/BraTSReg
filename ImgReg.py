@@ -9,7 +9,7 @@ from nibabel.testing import data_path
 from BlockCoordinateDecent import throwDarts, kNN, mls
 from QPDIR                 import computeFuncRes, updateDisplacementField, computeIterDiff
 from ImgSeg                import createMask, saveImg, getDisplacementField, genPred
-from eval                  import computeMAE, computeRobustness, computeJacobiDeterminant
+from eval                  import computeMAE, computeJacobiDeterminant
 
 # GPU parallelism
 from numba import cuda, int32, float32
@@ -20,9 +20,13 @@ THREADS = 512
 BUCKETS = 512
 
 # ----- load data ----- #
-original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_00_0000_t1.nii.gz"
-following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_01_0399_t1.nii.gz"
-landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_147/BraTSReg_147_01_0399_landmarks.csv"
+# - inputs - #
+original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_00_0000_t1.nii.gz"
+following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_01_0505_t1.nii.gz"
+landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_01_0505_landmarks.csv"
+# - outputs - #
+MAE_csv = "BraTSReg_141.csv"
+JD_nii  = "BraTSReg_141.nii.gz"
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, original_file)
@@ -173,7 +177,7 @@ for Kid in range(1, K+1):
 
     #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
 
-    maxIter = 50
+    maxIter = 1
     SWin = sw
     while SWin != 0:
         mu = 1/SWin # use mu to replace 1/(2*mu**2)
@@ -234,5 +238,13 @@ with open('weights', 'w') as f:
 D = getDisplacementField(d, d_ws, L, H, W, C, dpx, dpy, dpz)
 pred_data = genPred(D, moving_data, H, W, C)
 saveImg(pred_data,  H, W, C, "pred_test.jpg", 1)
+
+print("evaluation!")
+
+# - MAE and Robustness - #
+r = computeMAE(D, moving_data, fixed_data, H, W, C, landmark_file, MAE_csv)
+
+# - Jacobian Determinant - #
+
 
 # ----- Last Line ----- #

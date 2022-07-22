@@ -5,18 +5,6 @@ import csv
 
 from ImgSeg import saveImg
 
-def computeMAE(img1, img2, d, d_ws, L, H, W, C):
-    res = 0
-    for l in range(L):
-        k = d_ws[2][l]
-        i = d_ws[0][l]
-        j = d_ws[1][l]
-
-        res += abs( img2[k][i][j] - img1[k][i][j] )
-
-    res = res / L
-
-    return res
 
 def read_landmark_info(file_name):
     res = np.zeros((3, 50), dtype=int)
@@ -34,25 +22,50 @@ def read_landmark_info(file_name):
 
     return n-1, res
 
-def computeRobustness(moving, fixed, pred, file_name):
-    n, arr = read_landmark_info(file_name)
-    count = 0
-    for c in range(n):
-        k = arr[2][c]
-        i = arr[0][c]
-        j = arr[1][c]
-        #print("indices:", i, j, k)
-        #
+def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
+    N, arr = read_landmark_info(file_name)
+    AEs     = np.zeros(N)
+    AEs_new = np.zeros(N)
+    new_csv = np.zeros((N, 4))
+
+    c = 0
+    for n in range(N):
+        i = arr[0][n]
+        j = arr[1][n]
+        k = arr[2][n]
         k = 1
-        #
-        tmp = abs(moving[k][i][j] - fixed[k][i][j]) - abs(pred[k][i][j] - fixed[k][i][j])
-        if tmp < 0: count = count + 1
 
-    r = count
+        AEs[n] = abs( moving[k][i][j] - fixed[k][i][j] )
 
-    return r, n
+        ii = i - D[0][k*H*W + i*W +j]
+        jj = j - D[1][k*H*W + i*W +j]
+        kk = k - D[2][k*H*W + i*W +j]
 
-def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name):
+        AEs_new[n] = abs( moving[kk][ii][jj] - fixed[k][i][j] )
+        if AEs[n] > AEs_new[n]: c += 1
+
+        #print(i, j, k, ii, jj, kk, AEs[n], AEs_new[n])
+        new_csv[n][0] = n
+        new_csv[n][1] = ii
+        new_csv[n][2] = jj - 240
+        new_csv[n][3] = kk
+
+    MAE_before = np.median(AEs)
+    MAE_after  = np.median(AEs_new)
+
+    r = c / N
+
+    print("MAE_before:", MAE_before, "MAE_after:", MAE_after, "Robustness:", r)
+
+    # write to csv
+    with open(csv_file_name, "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(("Landmark", "X", "Y", "Z"))
+        writer.writerows(new_csv)
+
+    return r
+
+def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name, nii_file_name):
     n = 0
     jd = np.zeros((C, H, W))
     tmp = np.zeros((3, H*W*C), dtype=int)
