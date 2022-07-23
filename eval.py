@@ -52,9 +52,9 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
 
         AEs[n] = abs( moving[k][i][j] - fixed[k][i][j] )
 
-        ii = i - D[0][k*H*W + i*W +j]
-        jj = j - D[1][k*H*W + i*W +j]
-        kk = k - D[2][k*H*W + i*W +j]
+        ii = i + D[0][k*H*W + i*W +j]
+        jj = j + D[1][k*H*W + i*W +j]
+        kk = k + D[2][k*H*W + i*W +j]
 
         AEs_new[n] = abs( moving[kk][ii][jj] - fixed[k][i][j] )
         if AEs[n] > AEs_new[n]: c += 1
