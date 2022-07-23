@@ -46,10 +46,6 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
         j = arr[1][n]
         k = arr[2][n]
 
-        #
-        #k = 1 # ---- test only ----- #
-        #
-
         AEs[n] = abs( moving[k][i][j] - fixed[k][i][j] )
 
         ii = i + D[0][k*H*W + i*W +j]

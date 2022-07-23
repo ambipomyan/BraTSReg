@@ -47,11 +47,6 @@ print("input dims(HWC):", H, W, C)
 
 n_slice = 0
 
-#
-#n_slice = 74 # ---- test only ---- #
-#C       = 10 # ---- test only ---- #
-#
-
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
 print("sliced input dims(HWC):", H, W, C)
@@ -177,11 +172,7 @@ for Kid in range(1, K+1):
 
     #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
 
-    maxIter = 20
-
-    #
-    maxIter = 1 # ---- test only ---- #
-    #
+    maxIter = 15
 
     SWin = sw
     while SWin != 0:
