@@ -47,11 +47,11 @@ print("input dims(HWC):", H, W, C)
 
 n_slice = 0
 
-# get image slices
 #
-n_slice = 74
-C = 10
+#n_slice = 74 # ---- test only ---- #
+#C       = 10 # ---- test only ---- #
 #
+
 fixed_data  = np.zeros((C, H, W), dtype=int)
 moving_data = np.zeros((C, H, W), dtype=int)
 print("sliced input dims(HWC):", H, W, C)
@@ -177,7 +177,12 @@ for Kid in range(1, K+1):
 
     #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
 
-    maxIter = 1
+    maxIter = 20
+
+    #
+    maxIter = 1 # ---- test only ---- #
+    #
+
     SWin = sw
     while SWin != 0:
         mu = 1/SWin # use mu to replace 1/(2*mu**2)
@@ -245,6 +250,6 @@ print("evaluation!")
 r = computeMAE(D, moving_data, fixed_data, H, W, C, landmark_file, MAE_csv)
 
 # - Jacobian Determinant - #
-
+n_negative_elements = computeJacobiDeterminant(D, H, W, C, JD_nii)
 
 # ----- Last Line ----- #

@@ -3,8 +3,9 @@ import math
 import random
 import csv
 
-from ImgSeg import saveImg
+import nibabel as nib
 
+from ImgSeg import saveImg
 
 def read_landmark_info(file_name):
     res = np.zeros((3, 50), dtype=int)
@@ -22,6 +23,17 @@ def read_landmark_info(file_name):
 
     return n-1, res
 
+def save_JD_info(jd, H, W, C, file_name):
+    print("saving nii.gz file...")
+    # create nifti image
+    nii_img = nib.Nifti1Image(jd, np.eye(4))
+    # save image to file
+    nib.save(nii_img, file_name)
+
+    return 0
+
+# ----- evaluation! ----- #
+
 def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
     N, arr = read_landmark_info(file_name)
     AEs     = np.zeros(N)
@@ -33,7 +45,10 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
         i = arr[0][n]
         j = arr[1][n]
         k = arr[2][n]
-        k = 1
+        
+        #
+        #k = 1 # ---- test only ----- #
+        #
 
         AEs[n] = abs( moving[k][i][j] - fixed[k][i][j] )
 
@@ -45,7 +60,7 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
         if AEs[n] > AEs_new[n]: c += 1
 
         #print(i, j, k, ii, jj, kk, AEs[n], AEs_new[n])
-        new_csv[n][0] = n
+        new_csv[n][0] = n + 1 # index starts t 1
         new_csv[n][1] = ii
         new_csv[n][2] = jj - 240
         new_csv[n][3] = kk
@@ -58,6 +73,7 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
     print("MAE_before:", MAE_before, "MAE_after:", MAE_after, "Robustness:", r)
 
     # write to csv
+    print("saving csv file...")
     with open(csv_file_name, "w") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(("Landmark", "X", "Y", "Z"))
@@ -65,43 +81,15 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
 
     return r
 
-def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name, nii_file_name):
+def computeJacobiDeterminant(D, H, W, C, nii_file_name):
     n = 0
-    jd = np.zeros((C, H, W))
-    tmp = np.zeros((3, H*W*C), dtype=int)
-
-    # - recover displacement field - #
-    for l in range(L):
-        idx_z = d_ws[2][l]
-        idx_x = d_ws[0][l]
-        idx_y = d_ws[1][l]
-
-        for k in range(-dpz, dpz+1):
-            for i in range(-dpx, dpx+1):
-                for j in range(-dpy, dpy+1):
-                    c = idx_z + k
-                    h = idx_x + i
-                    w = idx_y + j
-
-                    if c >= C: c = C - 1
-                    if h >= H: h = H - 1
-                    if w >= W: w = W - 1
-
-                    if c < 0: c = 0
-                    if h < 0: h = 0
-                    if w < 0: w = 0
-
-                    ID = c*H*W + W*h + w
-
-                    tmp[2][ID] = d[2][l]
-                    tmp[0][ID] = d[0][l]
-                    tmp[1][ID] = d[1][l]
+    jd = np.zeros((H, W, C))          # JD: HWC
 
     # - compute JD - #
-    for c in range(C):
-        for h in range(H):
-            for w in range(W):
-                idx = c*H*W + W*h + w
+    for h in range(H):
+        for w in range(W):
+            for c in range(C):
+                idx = c*H*W + h*W + w # D:  CHW
 
                 # compute JD elements
 
@@ -114,16 +102,16 @@ def computeJacobiDeterminant(d, d_ws, L, H, W, C, dpx, dpy, dpz, file_name, nii_
                 # a33 = d(tz)/d(z)
 
                 A = 0
-                F = tmp[2][idx]*tmp[0][idx]*tmp[1][idx]
+                F = D[2][idx]*D[0][idx]*D[1][idx]
 
-                jd[c][h][w] = -1*A + F
+                jd[h][w][c] = -1*A + F
                 #print(jd[c][h][w])
 
                 # collect #negative elements
-                if jd[c][h][w] < 0: n += 1
+                if jd[h][w][c] < 0: n += 1
 
-    # - get statistics - #
-    jd_max  = np.amax(jd)
-    jd_mean = np.mean(jd)
+    print("# negative elements:", n)
 
-    return n, jd, jd_max, jd_mean
+    save_JD_info(jd, H, W, C, nii_file_name)
+
+    return n
