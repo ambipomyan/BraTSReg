@@ -45,7 +45,7 @@ def computeMAE(D, moving, fixed, H, W, C, file_name, csv_file_name):
         i = arr[0][n]
         j = arr[1][n]
         k = arr[2][n]
-        
+
         #
         #k = 1 # ---- test only ----- #
         #
