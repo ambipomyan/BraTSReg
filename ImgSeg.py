@@ -23,7 +23,7 @@ def createMask(data, H, W, C):
     for k in range(C):
         for i in range(H):
             for j in range(W):
-                if mask_data[k][i][j] > 120: # use small value for faster tests
+                if mask_data[k][i][j] > 100: # use small value for faster tests
                     mask_data[k][i][j] = 2
                 elif mask_data[k][i][j] > 0:
                     mask_data[k][i][j] = 1

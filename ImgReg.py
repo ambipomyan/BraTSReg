@@ -21,12 +21,12 @@ BUCKETS = 512
 
 # ----- load data ----- #
 # - inputs - #
-original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_00_0000_t1.nii.gz"
-following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_01_0505_t1.nii.gz"
-landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_141/BraTSReg_141_01_0505_landmarks.csv"
+original_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_160/BraTSReg_160_00_0000_t1.nii.gz"
+following_file  = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_160/BraTSReg_160_01_0194_t1.nii.gz"
+landmark_file   = "/home/kyan2/Desktop/BraTSReg_Validation_Data/BraTSReg_160/BraTSReg_160_01_0194_landmarks.csv"
 # - outputs - #
-MAE_csv = "BraTSReg_141.csv"
-JD_nii  = "BraTSReg_141.nii.gz"
+MAE_csv = "BraTSReg_160.csv"
+JD_nii  = "BraTSReg_160.nii.gz"
 
 # find data path for original scan and fllowing scan
 orignial  = os.path.join(data_path, original_file)
@@ -172,7 +172,7 @@ for Kid in range(1, K+1):
 
     #print(np.amax(z_ws[0]), np.amax(z_ws[1]), np.amax(z_ws[2]))
 
-    maxIter = 15
+    maxIter = 5
 
     SWin = sw
     while SWin != 0:
