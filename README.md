@@ -2,8 +2,8 @@
 Prepared for MICCAI 2022 challenge
 
 ## references
-- BraTS-Reg Challenge 2022 dataset: 
-- QPDIR algorithm: 
+- BraTS-Reg Challenge 2022 dataset: B.Baheti, D.Waldmannstetter, S.Chakrabarty, et al., "The Brain Tumor Sequence Registration Challenge: Establishing Correspondence between Pre-Operative and Follow-up MRI scans of diffuse glioma patients", arXiv preprint arXiv:2112.06979
+- QPDIR algorithm: Castillo E. Quadratic penalty method for intensity-based deformable image registration and 4DCT lung motion recovery. Med Phys. 2019 May;46(5):2194-2203. doi: 10.1002/mp.13457. Epub 2019 Mar 14. PMID: 30801729; PMCID: PMC6510611.
 
 ## dependency
 numpy  
