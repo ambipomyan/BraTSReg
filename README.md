@@ -6,13 +6,9 @@ Prepared for MICCAI 2022 challenge
 - QPDIR algorithm: Castillo E. Quadratic penalty method for intensity-based deformable image registration and 4DCT lung motion recovery. Med Phys. 2019 May;46(5):2194-2203. doi: 10.1002/mp.13457. Epub 2019 Mar 14. PMID: 30801729; PMCID: PMC6510611.
 
 ## dependency
-numpy  
-nibabel  
-cv2  
-csv  
-CUDA 10.2  
-Numba 0.50.1( llvmlite will be included when installing Numba )  
-colorama 0.4.5( >=0.3.9 is fine )  
+OS: Ubuntu 18.04.6 LTS  
+DUDA version: 10.2  
+python packages: numpy, nibabel, opencv, numba 0.50.1 
 
 ## sample run: case141
 ```
