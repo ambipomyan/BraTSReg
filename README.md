@@ -1,18 +1,17 @@
 # BraTSReg
 Prepared for MICCAI 2022 challenge
 
-## problem located
-- performance and tuning
+## references
+- BraTS-Reg Challenge 2022 dataset: 
+- QPDIR algorithm: 
 
 ## dependency
 numpy  
 nibabel  
 cv2  
 csv  
-
-## parallelism related
 CUDA 11.4  
-Numba 0.50.1( llvmlite will be included when installing Numba )   
+Numba 0.50.1( llvmlite will be included when installing Numba )  
 colorama 0.4.5( >=0.3.9 is fine )  
 
 ## sample run: case141
