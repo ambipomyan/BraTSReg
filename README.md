@@ -10,7 +10,7 @@ numpy
 nibabel  
 cv2  
 csv  
-CUDA 10.2 
+CUDA 10.2  
 Numba 0.50.1( llvmlite will be included when installing Numba )  
 colorama 0.4.5( >=0.3.9 is fine )  
 
